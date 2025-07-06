@@ -35,13 +35,9 @@ const Hero = () => {
         {/* Demo video */}
         <div className="relative max-w-4xl mx-auto">
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
-            <video
-              src="/promptr-demo.mov"
-              controls
-              autoPlay
-              loop
-              muted
-              playsInline
+            <img
+              src="/promptr-demo.gif"
+              alt="Promptr demo animation"
               className="w-full aspect-video rounded-xl"
             />
           </div>
