@@ -1,7 +1,7 @@
-import type { FC } from 'react';
+import React from 'react';
 import { Download } from 'lucide-react';
 
-const Hero: FC = () => {
+const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
       {/* Background gradient */}
@@ -11,10 +11,11 @@ const Hero: FC = () => {
       <div className="relative z-10 text-center max-w-6xl mx-auto pt-16">
         <div className="mb-8">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            AI super-powers for your{' '}
+            AI{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-              code editor
+              super-powers
             </span>
+            {' '}for your code editor
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
             Turn vague ideas into precise, high-quality prompts. 
@@ -32,14 +33,15 @@ const Hero: FC = () => {
           </a>
         </div>
 
-        {/* Demo video */}
+        {/* Demo placeholder */}
         <div className="relative max-w-4xl mx-auto">
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
-            <img
-              src="/promptr-demo.gif"
-              alt="Promptr demo animation"
-              className="w-full aspect-video rounded-xl"
-            />
+            <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-gray-400 text-lg">Demo video placeholder</p>
+                <p className="text-gray-500 text-sm mt-2">Showing prompt selection and AI refinement</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -6,11 +6,8 @@ const Pricing = () => {
     'Unlimited prompt refinements',
     'One-click AI enhancement',
     'Streaming output responses',
-    'Temperature control slider',
-    'Custom context integration',
-    'Privacy-first processing',
-    'No API key required',
-    'Priority support'
+    'Prompt creativity control',
+    'Custom context integration'
   ];
 
   return (

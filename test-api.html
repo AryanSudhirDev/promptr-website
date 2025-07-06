@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promptr API Tester</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #6366f1;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #374151;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #5856eb;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        .info {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            color: #1e40af;
+        }
+        .loading {
+            color: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Promptr API Tester</h1>
+    
+    <!-- Configuration -->
+    <div class="container">
+        <h2>⚙️ Configuration</h2>
+        <div class="form-group">
+            <label for="supabaseUrl">Supabase URL:</label>
+            <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co" />
+        </div>
+    </div>
+
+    <!-- Test Token Validation -->
+    <div class="container">
+        <h2>🔐 Test Token Validation</h2>
+        <div class="form-group">
+            <label for="tokenToValidate">Access Token (UUID):</label>
+            <input type="text" id="tokenToValidate" placeholder="e.g., 123e4567-e89b-12d3-a456-426614174000" />
+        </div>
+        <button onclick="testTokenValidation()" id="validateBtn">Validate Token</button>
+        <div id="validateResponse"></div>
+    </div>
+
+    <!-- Test Get User Token -->
+    <div class="container">
+        <h2>📧 Test Get User Token</h2>
+        <div class="form-group">
+            <label for="userEmail">Email Address:</label>
+            <input type="email" id="userEmail" placeholder="user@example.com" />
+        </div>
+        <button onclick="testGetUserToken()" id="getUserBtn">Get User Token</button>
+        <div id="getUserResponse"></div>
+    </div>
+
+    <!-- Test Database Direct -->
+    <div class="container">
+        <h2>🗄️ Test Database (Create Test User)</h2>
+        <div class="form-group">
+            <label for="testEmail">Test Email:</label>
+            <input type="email" id="testEmail" placeholder="test@example.com" />
+        </div>
+        <div class="form-group">
+            <label for="testStatus">Status:</label>
+            <select id="testStatus" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                <option value="trialing">Trialing</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+        <button onclick="createTestUser()" id="createUserBtn">Create Test User</button>
+        <div id="createUserResponse"></div>
+    </div>
+
+    <!-- Webhook Simulator -->
+    <div class="container">
+        <h2>🔗 Webhook Simulator</h2>
+        <div class="form-group">
+            <label for="webhookEvent">Event Type:</label>
+            <select id="webhookEvent" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                <option value="checkout.session.completed">checkout.session.completed</option>
+                <option value="invoice.payment_succeeded">invoice.payment_succeeded</option>
+                <option value="invoice.payment_failed">invoice.payment_failed</option>
+                <option value="customer.subscription.deleted">customer.subscription.deleted</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="webhookEmail">Customer Email:</label>
+            <input type="email" id="webhookEmail" placeholder="customer@example.com" />
+        </div>
+        <div class="form-group">
+            <label for="customerId">Customer ID:</label>
+            <input type="text" id="customerId" placeholder="cus_test123" />
+        </div>
+        <button onclick="simulateWebhook()" id="webhookBtn">Simulate Webhook</button>
+        <div id="webhookResponse"></div>
+        <div class="info" style="margin-top: 15px; font-size: 12px;">
+            ⚠️ Note: This simulates the webhook payload but won't include proper Stripe signatures. 
+            Use Stripe Dashboard's "Send test webhook" feature for full testing.
+        </div>
+    </div>
+
+    <script>
+        function getSupabaseUrl() {
+            const url = document.getElementById('supabaseUrl').value;
+            if (!url) {
+                alert('Please enter your Supabase URL first');
+                return null;
+            }
+            return url.replace(/\/$/, ''); // Remove trailing slash
+        }
+
+        function showResponse(elementId, response, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = `response ${isError ? 'error' : 'success'}`;
+            element.textContent = JSON.stringify(response, null, 2);
+        }
+
+        function showLoading(elementId, buttonId) {
+            document.getElementById(elementId).className = 'response loading';
+            document.getElementById(elementId).textContent = 'Loading...';
+            document.getElementById(buttonId).disabled = true;
+        }
+
+        function hideLoading(buttonId) {
+            document.getElementById(buttonId).disabled = false;
+        }
+
+        async function testTokenValidation() {
+            const supabaseUrl = getSupabaseUrl();
+            if (!supabaseUrl) return;
+
+            const token = document.getElementById('tokenToValidate').value;
+            if (!token) {
+                alert('Please enter a token to validate');
+                return;
+            }
+
+            showLoading('validateResponse', 'validateBtn');
+
+            try {
+                const response = await fetch(`${supabaseUrl}/functions/v1/validate-token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+                showResponse('validateResponse', { status: response.status, data }, !response.ok);
+            } catch (error) {
+                showResponse('validateResponse', { error: error.message }, true);
+            } finally {
+                hideLoading('validateBtn');
+            }
+        }
+
+        async function testGetUserToken() {
+            const supabaseUrl = getSupabaseUrl();
+            if (!supabaseUrl) return;
+
+            const email = document.getElementById('userEmail').value;
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            showLoading('getUserResponse', 'getUserBtn');
+
+            try {
+                const response = await fetch(`${supabaseUrl}/functions/v1/get-user-token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                showResponse('getUserResponse', { status: response.status, data }, !response.ok);
+            } catch (error) {
+                showResponse('getUserResponse', { error: error.message }, true);
+            } finally {
+                hideLoading('getUserBtn');
+            }
+        }
+
+        async function createTestUser() {
+            const supabaseUrl = getSupabaseUrl();
+            if (!supabaseUrl) return;
+
+            const email = document.getElementById('testEmail').value;
+            const status = document.getElementById('testStatus').value;
+            
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            showLoading('createUserResponse', 'createUserBtn');
+
+            // Simulate a checkout.session.completed webhook to create the user
+            try {
+                const webhookPayload = {
+                    type: 'checkout.session.completed',
+                    data: {
+                        object: {
+                            customer: 'cus_test_' + Date.now(),
+                            customer_email: email
+                        }
+                    }
+                };
+
+                const response = await fetch(`${supabaseUrl}/functions/v1/stripe-webhooks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'stripe-signature': 'test_signature' // This will fail signature verification but create the user for testing
+                    },
+                    body: JSON.stringify(webhookPayload)
+                });
+
+                // Note: This will likely return an error due to signature verification,
+                // but it demonstrates the webhook structure
+                const data = await response.text();
+                showResponse('createUserResponse', { 
+                    note: 'This simulates webhook structure but will fail signature verification. Use Stripe Dashboard for real testing.',
+                    status: response.status, 
+                    response: data 
+                }, true);
+            } catch (error) {
+                showResponse('createUserResponse', { error: error.message }, true);
+            } finally {
+                hideLoading('createUserBtn');
+            }
+        }
+
+        async function simulateWebhook() {
+            const supabaseUrl = getSupabaseUrl();
+            if (!supabaseUrl) return;
+
+            const eventType = document.getElementById('webhookEvent').value;
+            const email = document.getElementById('webhookEmail').value;
+            const customerId = document.getElementById('customerId').value;
+
+            if (!email || !customerId) {
+                alert('Please enter both email and customer ID');
+                return;
+            }
+
+            showLoading('webhookResponse', 'webhookBtn');
+
+            let webhookPayload;
+            
+            switch (eventType) {
+                case 'checkout.session.completed':
+                    webhookPayload = {
+                        type: eventType,
+                        data: {
+                            object: {
+                                customer: customerId,
+                                customer_email: email
+                            }
+                        }
+                    };
+                    break;
+                default:
+                    webhookPayload = {
+                        type: eventType,
+                        data: {
+                            object: {
+                                customer: customerId
+                            }
+                        }
+                    };
+            }
+
+            try {
+                const response = await fetch(`${supabaseUrl}/functions/v1/stripe-webhooks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'stripe-signature': 'test_signature'
+                    },
+                    body: JSON.stringify(webhookPayload)
+                });
+
+                const data = await response.text();
+                showResponse('webhookResponse', { 
+                    note: 'Webhook simulation (will fail signature verification)',
+                    payload: webhookPayload,
+                    status: response.status, 
+                    response: data 
+                }, true);
+            } catch (error) {
+                showResponse('webhookResponse', { error: error.message }, true);
+            } finally {
+                hideLoading('webhookBtn');
+            }
+        }
+
+        // Auto-fill Supabase URL if available
+        window.addEventListener('load', () => {
+            // You can set your Supabase URL here for convenience
+            // document.getElementById('supabaseUrl').value = 'https://your-project.supabase.co';
+        });
+    </script>
+</body>
+</html>
