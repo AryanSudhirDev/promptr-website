@@ -32,15 +32,18 @@ const Hero = () => {
           </a>
         </div>
 
-        {/* Demo placeholder */}
+        {/* Demo video */}
         <div className="relative max-w-4xl mx-auto">
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
-            <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-gray-400 text-lg">Demo video placeholder</p>
-                <p className="text-gray-500 text-sm mt-2">Showing prompt selection and AI refinement</p>
-              </div>
-            </div>
+            <video
+              src="/promptr-demo.mp4"
+              controls
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full aspect-video rounded-xl"
+            />
           </div>
         </div>
       </div>
