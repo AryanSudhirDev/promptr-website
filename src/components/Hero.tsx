@@ -1,6 +1,7 @@
+import type { FC } from 'react';
 import { Download } from 'lucide-react';
 
-const Hero = () => {
+const Hero: FC = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
       {/* Background gradient */}
