@@ -36,7 +36,7 @@ const Hero = () => {
         <div className="relative max-w-4xl mx-auto">
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
             <video
-              src="/promptr-demo.mp4"
+              src="/promptr-demo.mov"
               controls
               autoPlay
               loop
