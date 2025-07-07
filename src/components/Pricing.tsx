@@ -12,7 +12,6 @@ const Pricing = () => {
   const features = [
     'Unlimited prompt refinements',
     'One-click AI enhancement',
-    'Streaming output responses',
     'Prompt creativity control',
     'Custom context integration'
   ];
@@ -149,11 +148,7 @@ const Pricing = () => {
         </div>
 
         {/* CTA Button - changes based on auth state and subscription status */}
-        {!isLoaded ? (
-          <div className="w-full bg-gray-600 text-white font-semibold py-4 px-6 rounded-full opacity-50 cursor-not-allowed">
-            Loading...
-          </div>
-        ) : isSignedIn ? (
+        {isSignedIn ? (
           <>
             {statusLoading ? (
               <div className="w-full bg-gray-600 text-white font-semibold py-4 px-6 rounded-full opacity-50 cursor-not-allowed">
@@ -182,17 +177,12 @@ const Pricing = () => {
             )}
           </>
         ) : (
-          <div className="space-y-4">
-            <button 
-              onClick={() => window.location.href = '/sign-up'}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:from-purple-500 hover:to-purple-600 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105"
-            >
-              Sign Up for Free Trial
-            </button>
-            <p className="text-center text-gray-400 text-sm">
-              Already have an account? <button onClick={() => window.location.href = '/sign-in'} className="text-purple-400 hover:text-purple-300">Sign in</button>
-            </p>
-          </div>
+          <button 
+            onClick={() => window.location.href = '/sign-up'}
+            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:from-purple-500 hover:to-purple-600 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105"
+          >
+            Sign Up for Free Trial
+          </button>
         )}
       </div>
     </div>

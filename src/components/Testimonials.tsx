@@ -7,21 +7,33 @@ const Testimonials = () => {
 
   const testimonials = [
     {
-      name: 'Sarah Chen',
-      role: 'Senior Developer at TechCorp',
-      content: 'Promptr has completely transformed my AI workflow. The prompt refinements are incredibly accurate and save me hours of trial and error every day.',
+      name: 'Alex Chen',
+      role: 'Frontend Dev at fintech startup',
+      content: 'I\'ve been using this for 3 months now. The context feature is incredibly useful when working with our React/TypeScript codebase. Still requires some fine-tuning but significantly better than my previous copy-paste workflow with ChatGPT.',
       avatar: 'https://images.pexels.com/photos/3785077/pexels-photo-3785077.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
     },
     {
       name: 'Marcus Rodriguez',
-      role: 'Full Stack Engineer',
-      content: 'The custom context feature is genius! I can tailor prompts for specific frameworks and get much better results from AI assistants.',
+      role: 'Backend Engineer, 8 years exp',
+      content: 'I was initially skeptical, but the prompt refinements genuinely help. Particularly effective when debugging complex SQL queries or explaining legacy code. The temperature slider could be more intuitive though.',
       avatar: 'https://images.pexels.com/photos/3778966/pexels-photo-3778966.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
     },
     {
-      name: 'Emily Johnson',
-      role: 'Lead Developer at StartupXYZ',
-      content: 'Privacy-first approach with no API key setup? Perfect! Promptr helps me craft better prompts without any configuration hassle.',
+      name: 'Sarah Kim',
+      role: 'Full-stack @ YC startup',
+      content: 'Real game changer for code reviews. I use it to generate better PR descriptions and explain complex algorithms to junior developers. The ⌘⇧G shortcut has become second nature. No more switching to ChatGPT in another tab.',
+      avatar: 'https://images.pexels.com/photos/3756679/pexels-photo-3756679.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+    },
+    {
+      name: 'Jake Thompson',
+      role: 'DevOps/Platform Engineer',
+      content: 'Extremely useful for Kubernetes YAML debugging and generating Terraform explanations. The offline functionality is essential for our security-conscious team. Still discovering all the features it offers.',
+      avatar: 'https://images.pexels.com/photos/3785077/pexels-photo-3785077.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+    },
+    {
+      name: 'Priya Patel',
+      role: 'Senior Frontend @ Big Tech',
+      content: 'Primarily use it for refactoring legacy jQuery into modern React. The context awareness is surprisingly accurate - it understands our component patterns well. Saves approximately 30 minutes daily, which adds up significantly.',
       avatar: 'https://images.pexels.com/photos/3756679/pexels-photo-3756679.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
     }
   ];
