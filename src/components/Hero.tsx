@@ -12,7 +12,7 @@ const Hero = () => {
         <div className="mb-8">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
             AI{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
               super-powers
             </span>
             {' '}for your code editor
@@ -25,22 +25,31 @@ const Hero = () => {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           <a
-            href="https://google.com"
+            href="https://marketplace.visualstudio.com/items?itemName=promptr.promptr"
+            target="_blank"
+            rel="noopener noreferrer"
             className="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-full transition-all duration-300 hover:from-purple-500 hover:to-purple-600 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105"
           >
             <Download className="w-5 h-5 mr-2" />
-            Install on VS Code
+            Install Extension
           </a>
+          <button
+            onClick={() => window.location.href = '/sign-up'}
+            className="inline-flex items-center justify-center px-8 py-4 border border-white/20 text-white font-semibold rounded-full transition-all duration-300 hover:bg-white/10 hover:border-white/40 transform hover:scale-105"
+          >
+            Get Started
+          </button>
         </div>
 
-        {/* Demo placeholder */}
+        {/* Demo */}
         <div className="relative max-w-4xl mx-auto">
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
-            <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-gray-400 text-lg">Demo video placeholder</p>
-                <p className="text-gray-500 text-sm mt-2">Showing prompt selection and AI refinement</p>
-              </div>
+            <div className="aspect-video rounded-xl overflow-hidden">
+              <img 
+                src="/promptr-demo.gif" 
+                alt="Promptr VS Code extension demo showing prompt selection and AI refinement"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>

@@ -1,10 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { withSecurity, getResponseHeaders } from '../_shared/security-config.ts';
+import { authOperationsLimiter } from '../_shared/rate-limiter.ts';
+import { InputValidator, createValidationErrorResponse } from '../_shared/validation.ts';
 
 interface Database {
   public: {
@@ -35,23 +32,11 @@ interface GetTokenResponse {
   message?: string;
 }
 
-Deno.serve(async (req: Request) => {
+// Secure handler using the new security middleware
+const secureHandler = withSecurity(async (req: Request) => {
+  const responseHeaders = getResponseHeaders(req);
+  
   try {
-    // Handle CORS preflight requests
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { status: 200, headers: corsHeaders });
-    }
-
-    if (req.method !== 'POST') {
-      return new Response(
-        JSON.stringify({ success: false, message: 'Method not allowed' }), 
-        { 
-          status: 405, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
     // Initialize Supabase client with service role key
     const supabase = createClient<Database>(
       Deno.env.get('SUPABASE_URL') || '',
@@ -68,28 +53,30 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ success: false, message: 'Invalid request format' }), 
         { 
           status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: responseHeaders
         }
       );
     }
 
-    // Validate email
-    const { email } = requestData;
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return new Response(
-        JSON.stringify({ success: false, message: 'Valid email is required' }), 
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+    // Validate request body structure
+    const bodyValidation = InputValidator.validateRequestBody(requestData, ['email']);
+    if (!bodyValidation.isValid) {
+      return createValidationErrorResponse(bodyValidation.errors, responseHeaders);
     }
+
+    // Validate email
+    const emailValidation = InputValidator.validateEmail(requestData.email);
+    if (!emailValidation.isValid) {
+      return createValidationErrorResponse(emailValidation.errors, responseHeaders);
+    }
+
+    const email = emailValidation.sanitized;
 
     // Look up user by email
     const { data: user, error } = await supabase
       .from('user_access')
       .select('access_token, status')
-      .eq('email', email.toLowerCase().trim())
+      .eq('email', email)
       .single();
 
     if (error) {
@@ -102,7 +89,7 @@ Deno.serve(async (req: Request) => {
           }), 
           { 
             status: 404, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: responseHeaders
           }
         );
       } else {
@@ -112,7 +99,7 @@ Deno.serve(async (req: Request) => {
           JSON.stringify({ success: false, message: 'Internal server error' }), 
           { 
             status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: responseHeaders
           }
         );
       }
@@ -129,18 +116,28 @@ Deno.serve(async (req: Request) => {
       JSON.stringify(response), 
       { 
         status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: responseHeaders
       }
     );
 
   } catch (error) {
-    console.error('Get token error:', error);
+    // Log error without sensitive information
+    console.error('Get token error:', {
+      message: error.message,
+      stack: error.stack?.split('\n')[0] // Only first line of stack
+    });
     return new Response(
       JSON.stringify({ success: false, message: 'Internal server error' }), 
       { 
         status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: responseHeaders
       }
     );
   }
+}, {
+  rateLimiter: authOperationsLimiter,
+  requireValidOrigin: true
 });
+
+// Export the secure handler
+Deno.serve(secureHandler); 

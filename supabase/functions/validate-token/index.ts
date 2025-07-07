@@ -1,10 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { withSecurity, getResponseHeaders } from '../_shared/security-config.ts';
+import { tokenValidationLimiter } from '../_shared/rate-limiter.ts';
+import { InputValidator, createValidationErrorResponse } from '../_shared/validation.ts';
 
 interface Database {
   public: {
@@ -30,24 +27,16 @@ interface ValidateTokenRequest {
 
 interface ValidateTokenResponse {
   access: boolean;
+  status?: string;
+  email?: string;
+  message?: string;
 }
 
-Deno.serve(async (req: Request) => {
+// Secure handler using the new security middleware
+const secureHandler = withSecurity(async (req: Request) => {
+  const responseHeaders = getResponseHeaders(req);
+  
   try {
-    // Handle CORS preflight requests
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { status: 200, headers: corsHeaders });
-    }
-
-    if (req.method !== 'POST') {
-      return new Response(
-        JSON.stringify({ access: false }), 
-        { 
-          status: 405, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
 
     // Initialize Supabase client with service role key
     const supabase = createClient<Database>(
@@ -62,94 +51,124 @@ Deno.serve(async (req: Request) => {
     } catch (error) {
       console.error('Invalid JSON in request body:', error);
       return new Response(
-        JSON.stringify({ access: false }), 
+        JSON.stringify({ access: false, message: 'Invalid request format' }), 
         { 
           status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: responseHeaders
         }
       );
     }
 
-    // Validate token format (should be a valid UUID)
-    const { token } = requestData;
-    if (!token || typeof token !== 'string') {
-      console.log('Missing or invalid token format');
-      return new Response(
-        JSON.stringify({ access: false }), 
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+    // Validate request body structure
+    const bodyValidation = InputValidator.validateRequestBody(requestData, ['token']);
+    if (!bodyValidation.isValid) {
+      return createValidationErrorResponse(bodyValidation.errors, responseHeaders);
     }
 
-    // Basic UUID format validation
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(token)) {
-      console.log('Invalid token format (not a UUID)');
-      return new Response(
-        JSON.stringify({ access: false }), 
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+    // Validate token format
+    const tokenValidation = InputValidator.validateToken(requestData.token);
+    if (!tokenValidation.isValid) {
+      return createValidationErrorResponse(tokenValidation.errors, responseHeaders);
     }
+
+    const token = tokenValidation.sanitized;
 
     // Look up user by access token
     const { data: user, error } = await supabase
       .from('user_access')
-      .select('status')
+      .select('email, status, created_at, updated_at')
       .eq('access_token', token)
       .single();
 
     if (error) {
       if (error.code === 'PGRST116') {
-        // No rows returned - token not found
-        console.log('Token not found in database');
+        // Token not found
+        console.log('Token validation failed: Token not found');
         return new Response(
-          JSON.stringify({ access: false }), 
+          JSON.stringify({ 
+            access: false, 
+            message: 'Invalid token' 
+          }), 
           { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            status: 200, // Return 200 but access: false for security
+            headers: responseHeaders
           }
         );
       } else {
         // Database error
-        console.error('Database error during token lookup:', error);
+        console.error('Database error during token validation:', {
+          code: error.code,
+          message: error.message
+        });
         return new Response(
-          JSON.stringify({ access: false }), 
+          JSON.stringify({ access: false, message: 'Internal server error' }), 
           { 
             status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: responseHeaders
           }
         );
       }
     }
 
-    // Check if user has valid access (trialing or active status)
-    const hasAccess = user.status === 'trialing' || user.status === 'active';
+    // Check subscription status
+    const hasValidSubscription = user.status === 'active' || user.status === 'trialing';
     
-    console.log(`Token validation result: ${hasAccess ? 'granted' : 'denied'} (status: ${user.status})`);
+    if (!hasValidSubscription) {
+      console.log('Token validation failed: Invalid subscription status', {
+        email: user.email,
+        status: user.status
+      });
+      return new Response(
+        JSON.stringify({ 
+          access: false, 
+          status: user.status,
+          message: 'Subscription is not active' 
+        }), 
+        { 
+          status: 200, // Return 200 but access: false
+          headers: responseHeaders
+        }
+      );
+    }
 
-    const response: ValidateTokenResponse = { access: hasAccess };
+    // Token is valid and subscription is active
+    console.log('Token validation successful:', {
+      email: user.email,
+      status: user.status
+    });
+
+    const response: ValidateTokenResponse = {
+      access: true,
+      status: user.status,
+      email: user.email
+    };
 
     return new Response(
       JSON.stringify(response), 
       { 
         status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: responseHeaders
       }
     );
 
   } catch (error) {
-    console.error('Token validation error:', error);
+    // Log error without sensitive information
+    console.error('Token validation error:', {
+      message: error.message,
+      stack: error.stack?.split('\n')[0] // Only first line of stack
+    });
     return new Response(
-      JSON.stringify({ access: false }), 
+      JSON.stringify({ access: false, message: 'Internal server error' }), 
       { 
         status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: responseHeaders
       }
     );
   }
+}, {
+  rateLimiter: tokenValidationLimiter,
+  requireValidOrigin: true
 });
+
+// Export the secure handler
+Deno.serve(secureHandler); 

@@ -1,11 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@14';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { withSecurity, getResponseHeaders } from '../_shared/security-config.ts';
+import { webhooksLimiter } from '../_shared/rate-limiter.ts';
 
 interface Database {
   public: {
@@ -43,20 +39,11 @@ interface Database {
   };
 }
 
-Deno.serve(async (req: Request) => {
+// Secure webhook handler
+const secureHandler = withSecurity(async (req: Request) => {
+  const responseHeaders = getResponseHeaders(req);
+  
   try {
-    // Handle CORS preflight requests
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { status: 200, headers: corsHeaders });
-    }
-
-    if (req.method !== 'POST') {
-      return new Response('Method not allowed', { 
-        status: 405, 
-        headers: corsHeaders 
-      });
-    }
-
     // Initialize Stripe with secret key
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
@@ -76,7 +63,7 @@ Deno.serve(async (req: Request) => {
       console.error('Missing stripe-signature header');
       return new Response('Missing signature', { 
         status: 400, 
-        headers: corsHeaders 
+        headers: responseHeaders 
       });
     }
 
@@ -92,7 +79,7 @@ Deno.serve(async (req: Request) => {
       console.error('Webhook signature verification failed:', err);
       return new Response('Invalid signature', { 
         status: 400, 
-        headers: corsHeaders 
+        headers: responseHeaders 
       });
     }
 
@@ -227,7 +214,7 @@ Deno.serve(async (req: Request) => {
           ? subscription.customer 
           : subscription.customer.id;
 
-        console.log('Processing subscription deletion for customer:', customerId);
+        console.log('Processing subscription cancellation for customer:', customerId);
 
         const { error } = await supabase
           .from('user_access')
@@ -242,23 +229,59 @@ Deno.serve(async (req: Request) => {
         break;
       }
 
+      case 'customer.subscription.trial_will_end': {
+        const subscription = event.data.object as Stripe.Subscription;
+        
+        if (!subscription.customer) {
+          console.error('Missing customer in subscription trial_will_end');
+          break;
+        }
+
+        const customerId = typeof subscription.customer === 'string' 
+          ? subscription.customer 
+          : subscription.customer.id;
+
+        console.log('Trial ending soon for customer:', customerId);
+        // Note: Keep status as 'trialing' until trial actually ends
+        // This event is just a warning that trial will end soon
+        break;
+      }
+
+      case 'invoice.created': {
+        const invoice = event.data.object as Stripe.Invoice;
+        
+        // If this is the first invoice after trial and it's not paid automatically,
+        // the subscription will move to past_due and eventually be cancelled
+        if (!invoice.customer) {
+          console.error('Missing customer in invoice.created');
+          break;
+        }
+
+        console.log('Invoice created for customer:', invoice.customer);
+        // No status change needed here - wait for payment_succeeded or payment_failed
+        break;
+      }
+
       default:
         console.log('Unhandled event type:', event.type);
     }
 
-    return new Response(JSON.stringify({ received: true }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    return new Response('OK', { 
+      status: 200, 
+      headers: responseHeaders 
     });
 
   } catch (error) {
     console.error('Webhook processing error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }), 
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    return new Response('Internal server error', { 
+      status: 500, 
+      headers: responseHeaders 
+    });
   }
+}, {
+  allowedMethods: ['POST', 'OPTIONS'],
+  rateLimiter: webhooksLimiter,
+  requireValidOrigin: false // Webhooks come from Stripe, not our domain
 });
+
+Deno.serve(secureHandler); 

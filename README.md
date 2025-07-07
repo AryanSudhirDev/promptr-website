@@ -1,112 +1,183 @@
-# Promptr - Backend System Documentation
+# Supabase CLI
 
-## Overview
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-This backend system manages user access tokens for the Promptr VS Code extension using Supabase and Stripe integration. Users can start a free trial or purchase access, and receive a unique token to unlock premium features in the extension.
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-## Architecture
+This repository contains all the functionality for Supabase CLI.
 
-### Database Schema
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-**Table: `user_access`**
-- `id` (uuid, primary key)
-- `email` (text, unique, not null)
-- `access_token` (uuid, unique, auto-generated)
-- `stripe_customer_id` (text, unique)
-- `status` (text) - 'trialing', 'active', 'inactive'
-- `created_at` (timestamptz)
-- `updated_at` (timestamptz)
+## Getting started
 
-### API Endpoints
+### Install the CLI
 
-#### 1. Stripe Webhooks (`/functions/v1/stripe-webhooks`)
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
-Handles the following Stripe events:
-
-- **`checkout.session.completed`**: Creates new user or updates existing user to 'trialing' status
-- **`invoice.payment_succeeded`**: Updates user status to 'active'
-- **`invoice.payment_failed`**: Updates user status to 'inactive'
-- **`customer.subscription.deleted`**: Updates user status to 'inactive'
-
-**Security**: Verifies Stripe webhook signatures using `STRIPE_WEBHOOK_SECRET`
-
-#### 2. Token Validation (`/functions/v1/validate-token`)
-
-**Method**: POST
-**Body**: `{ "token": "uuid-string" }`
-**Response**: `{ "access": boolean }`
-
-Validates access tokens from VS Code extension:
-- Returns `{ "access": true }` for users with 'trialing' or 'active' status
-- Returns `{ "access": false }` for invalid tokens or 'inactive' users
-- Includes UUID format validation and secure error handling
-
-#### 3. Get User Token (`/functions/v1/get-user-token`)
-
-**Method**: POST
-**Body**: `{ "email": "user@example.com" }`
-**Response**: `{ "success": boolean, "token"?: string, "status"?: string, "message"?: string }`
-
-Allows users to retrieve their access token by email:
-- Returns token and current status for existing users
-- Provides helpful error messages for users without access
-
-## Environment Variables
-
-Required environment variables in Supabase:
-
-```
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```bash
+npm i supabase --save-dev
 ```
 
-## Security Features
+To install the beta release channel:
 
-- **Row Level Security (RLS)** enabled on all tables
-- **Service role access only** - no public access to user data
-- **Webhook signature verification** for all Stripe events
-- **UUID format validation** for access tokens
-- **Secure error handling** - no sensitive data in error responses
-- **CORS headers** properly configured for all endpoints
+```bash
+npm i supabase@beta --save-dev
+```
 
-## Usage Flow
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-1. **User starts trial/purchase**: Stripe Checkout creates session
-2. **Webhook processes payment**: `checkout.session.completed` creates user with token
-3. **User gets token**: Via email lookup using `/get-user-token` endpoint
-4. **VS Code extension validates**: Uses `/validate-token` for feature access
-5. **Status updates**: Stripe webhooks automatically update user status based on payment events
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-## Database Indexes
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-Performance indexes created on:
-- `email` (for user lookups)
-- `access_token` (for token validation)
-- `stripe_customer_id` (for webhook processing)
-- `status` (for access queries)
+<details>
+  <summary><b>macOS</b></summary>
 
-## Error Handling
+  Available via [Homebrew](https://brew.sh). To install:
 
-All endpoints include comprehensive error handling:
-- Invalid request formats
-- Missing or malformed tokens
-- Database connection issues
-- Stripe webhook signature failures
-- User not found scenarios
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-## Testing
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-To test the system:
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-1. **Webhook testing**: Use Stripe CLI to forward webhooks to local development
-2. **Token validation**: Send POST requests to validate-token endpoint
-3. **User lookup**: Test get-user-token with various email scenarios
+<details>
+  <summary><b>Windows</b></summary>
 
-## Production Deployment
+  Available via [Scoop](https://scoop.sh). To install:
 
-1. Set up Supabase project with environment variables
-2. Deploy edge functions using Supabase dashboard
-3. Configure Stripe webhook endpoints to point to your Supabase functions
-4. Test webhook delivery and token validation flows
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
+
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
+```bash
+supabase bootstrap
+```
+
+Or using npx:
+
+```bash
+npx supabase bootstrap
+```
+
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```

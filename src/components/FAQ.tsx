@@ -45,7 +45,7 @@ const FAQ = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Frequently Asked{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
               Questions
             </span>
           </h2>

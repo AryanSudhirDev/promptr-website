@@ -18,14 +18,18 @@ const Footer = () => {
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-4">
               <a
-                href="#"
+                href="https://github.com/promptr"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors duration-300"
                 aria-label="GitHub"
               >
                 <Github className="w-6 h-6" />
               </a>
               <a
-                href="#"
+                href="https://twitter.com/promptr"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors duration-300"
                 aria-label="Twitter"
               >
@@ -34,18 +38,26 @@ const Footer = () => {
             </div>
             
             <div className="flex items-center gap-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-white transition-colors duration-300">
+              <button 
+                onClick={() => alert('Privacy Policy - Coming soon!')}
+                className="hover:text-white transition-colors duration-300"
+              >
                 Privacy Policy
-              </a>
-              <a href="#" className="hover:text-white transition-colors duration-300">
+              </button>
+              <button 
+                onClick={() => alert('Terms of Service - Coming soon!')}
+                className="hover:text-white transition-colors duration-300"
+              >
                 Terms of Service
-              </a>
+              </button>
             </div>
           </div>
         </div>
         
         <div className="mt-8 pt-8 border-t border-white/10 text-center">
-
+          <p className="text-gray-400 text-sm">
+            © {new Date().getFullYear()} Promptr. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
