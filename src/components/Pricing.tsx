@@ -172,7 +172,7 @@ const Pricing = () => {
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:from-purple-500 hover:to-purple-600 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                {isLoading ? 'Creating checkout...' : userSubscriptionStatus === 'inactive' ? 'Renew Subscription' : 'Start 14-day free trial'}
+                {isLoading ? 'Creating checkout...' : userSubscriptionStatus === 'inactive' ? 'Renew Subscription' : 'Start 14 Day Free Trial'}
               </button>
             )}
           </>
@@ -181,7 +181,7 @@ const Pricing = () => {
             onClick={() => window.location.href = '/sign-up'}
             className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:from-purple-500 hover:to-purple-600 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105"
           >
-            Sign Up for Free Trial
+            Start 14 Day Free Trial
           </button>
         )}
       </div>
