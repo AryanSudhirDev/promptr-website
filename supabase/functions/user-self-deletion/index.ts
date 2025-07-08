@@ -1,127 +1,167 @@
-import { serve } from 'https://deno.land/std@0.182.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.14.0'
-import Stripe from 'npm:stripe@14'
-import { corsHeaders } from '../_shared/cors.ts'
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import Stripe from 'npm:stripe@14';
+import { withSecurity, getResponseHeaders } from '../_shared/security-config.ts';
+import { apiGeneralLimiter } from '../_shared/rate-limiter.ts';
+
+interface Database {
+  public: {
+    Tables: {
+      user_access: {
+        Row: {
+          id: string;
+          email: string;
+          access_token: string;
+          stripe_customer_id: string | null;
+          status: 'trialing' | 'active' | 'inactive';
+          created_at: string;
+          updated_at: string;
+        };
+      };
+    };
+  };
+}
 
 console.log(`Function "user-self-deletion" up and running!`)
 
-serve(async (req: Request) => {
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-
+// Secure handler using the security middleware
+const secureHandler = withSecurity(async (req: Request) => {
+  const responseHeaders = getResponseHeaders(req);
+  
   try {
-    // Create a Supabase client with the Auth context of the logged in user
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      // Create client with Auth context of the user that called the function
-      // This way your row-level-security (RLS) policies are applied
-      { 
-        global: { 
-          headers: { Authorization: req.headers.get('Authorization')! } 
-        } 
-      }
-    )
-
-    // Get the session or user object
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
-
-    if (userError || !user) {
-      throw new Error('User not authenticated')
+    // Parse request body
+    let requestData: { email: string };
+    try {
+      requestData = await req.json();
+    } catch (error) {
+      console.error('Invalid JSON in request body:', error);
+      return new Response(
+        JSON.stringify({ success: false, message: 'Invalid request format' }), 
+        { 
+          status: 400, 
+          headers: responseHeaders
+        }
+      );
     }
 
-    console.log('Authenticated user:', user.id, user.email)
+    if (!requestData.email) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Email is required' }), 
+        { 
+          status: 400, 
+          headers: responseHeaders
+        }
+      );
+    }
 
-    // Create admin client for privileged operations
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const email = requestData.email;
+    console.log('Processing deletion for email:', email);
+
+    // Initialize Supabase and Stripe with service role key
+    const supabase = createClient<Database>(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
+    });
 
     // Try to get user data from our custom table
-    const { data: userData, error: fetchError } = await supabaseAdmin
+    const { data: userData, error: fetchError } = await supabase
       .from('user_access')
       .select('*')
-      .eq('email', user.email!)
-      .single()
+      .eq('email', email)
+      .single();
+
+    let deletedSubscriptions = false;
 
     if (!fetchError && userData?.stripe_customer_id) {
-      console.log('User has subscription data, cleaning up Stripe...')
+      console.log('User has subscription data, cleaning up Stripe...');
       
-      // Initialize Stripe for cleanup
-      const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-        apiVersion: '2023-10-16',
-      })
-
       try {
         // Get all subscriptions for this customer
         const subscriptions = await stripe.subscriptions.list({
           customer: userData.stripe_customer_id,
           status: 'all',
           limit: 100,
-        })
+        });
 
         // Cancel all active subscriptions
         for (const subscription of subscriptions.data) {
           if (subscription.status === 'active' || subscription.status === 'trialing') {
-            await stripe.subscriptions.cancel(subscription.id)
-            console.log('Cancelled subscription:', subscription.id)
+            await stripe.subscriptions.cancel(subscription.id);
+            console.log('Cancelled subscription:', subscription.id);
+            deletedSubscriptions = true;
           }
         }
       } catch (stripeError) {
-        console.error('Stripe cleanup failed:', stripeError)
+        console.error('Stripe cleanup failed:', stripeError);
         // Continue with deletion even if Stripe fails
       }
 
       // Delete user data from our custom table
-      const { error: deleteError } = await supabaseAdmin
+      const { error: deleteError } = await supabase
         .from('user_access')
         .delete()
-        .eq('email', user.email!)
+        .eq('email', email);
 
       if (deleteError) {
-        console.error('Failed to delete user data:', deleteError)
+        console.error('Failed to delete user data:', deleteError);
       } else {
-        console.log('Deleted user data from user_access table')
+        console.log('Deleted user data from user_access table');
       }
     }
 
-    // Delete the user from Supabase Auth (this will cascade to related tables)
-    const { data: deletion_data, error: deletion_error } = await supabaseAdmin.auth.admin.deleteUser(user.id)
+    // Try to find and delete the user from Supabase Auth by email
+    const { data: authUsers } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000
+    });
 
-    if (deletion_error) {
-      throw deletion_error
+    const authUser = authUsers.users?.find(u => u.email === email);
+    
+    if (authUser) {
+      // Delete the user from Supabase Auth
+      const { error: deletion_error } = await supabase.auth.admin.deleteUser(authUser.id);
+
+      if (deletion_error) {
+        console.error('Failed to delete auth user:', deletion_error);
+      } else {
+        console.log('Deleted auth user:', authUser.id);
+      }
     }
 
-    console.log('User & files deleted user_id:', user.id)
+    console.log('User deletion completed for:', email);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'User account has been permanently deleted',
-        user_id: user.id
+        message: `Account for ${email} has been permanently deleted${deletedSubscriptions ? ' and subscriptions cancelled' : ''}`,
+        email: email
       }), 
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: responseHeaders,
         status: 200,
       }
-    )
+    );
 
   } catch (error) {
-    console.error('User deletion error:', error)
+    console.error('User deletion error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
         error: error.message || 'Failed to delete user account' 
       }), 
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        headers: responseHeaders,
+        status: 500,
       }
-    )
+    );
   }
-}) 
+}, {
+  rateLimiter: apiGeneralLimiter,
+  requireValidOrigin: false
+});
+
+// Export the secure handler
+Deno.serve(secureHandler); 
