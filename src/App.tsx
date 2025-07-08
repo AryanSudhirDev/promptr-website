@@ -5,7 +5,6 @@ import Features from './components/Features';
 import Pricing from './components/Pricing';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
-import Success from './components/Success';
 import CheckoutRedirect from './components/CheckoutRedirect';
 import AccountDashboard from './components/AccountDashboard';
 import NotificationSystem from './components/NotificationSystem';
@@ -13,8 +12,6 @@ import { AuthPage } from './components/AuthWrapper';
 
 function App() {
   const path = window.location.pathname;
-  const urlParams = new URLSearchParams(window.location.search);
-  const paymentSuccess = urlParams.get('payment') === 'success';
 
   // Handle authentication pages
   if (path === '/sign-in') {
@@ -55,15 +52,7 @@ function App() {
     );
   }
 
-  // Handle success page (for existing links)
-  if (path === '/success') {
-    return (
-      <>
-        <Success />
-        <NotificationSystem />
-      </>
-    );
-  }
+
 
   // Handle cancelled page
   if (path === '/cancelled') {
@@ -86,28 +75,11 @@ function App() {
     );
   }
 
-  // Default home page (with optional payment success banner)
+  // Default home page
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900" style={{ backgroundColor: '#0B0B0E' }}>
         <div className="relative">
-          {/* Payment success banner */}
-          {paymentSuccess && (
-            <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-center py-3 px-4 relative z-50">
-              <div className="max-w-4xl mx-auto">
-                <p className="font-semibold">
-                  🎉 Welcome to Promptr Pro! Your 14-day free trial has started. 
-                  <button 
-                    onClick={() => window.location.href = '/account'}
-                    className="underline ml-2 hover:text-green-100"
-                  >
-                    View your account →
-                  </button>
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Background effects */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent"></div>

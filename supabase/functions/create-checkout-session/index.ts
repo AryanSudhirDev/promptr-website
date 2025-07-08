@@ -62,96 +62,7 @@ const secureHandler = withSecurity(async (req: Request) => {
       });
     }
 
-    // Comprehensive diagnostic test - add ?debug=1
-    if (url.searchParams.get('debug') === '1') {
-      const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-      const stripePriceId = Deno.env.get('STRIPE_PRICE_ID');
-      
-      const diagnostics: any = {
-        timestamp: new Date().toISOString(),
-        environment: {
-          STRIPE_SECRET_KEY: stripeSecretKey ? `${stripeSecretKey.substring(0, 8)}...` : 'MISSING',
-          STRIPE_PRICE_ID: stripePriceId || 'MISSING',
-          key_type: stripeSecretKey ? (stripeSecretKey.startsWith('sk_live_') ? 'LIVE' : stripeSecretKey.startsWith('sk_test_') ? 'TEST' : 'UNKNOWN') : 'MISSING'
-        },
-        tests: {}
-      };
 
-      // Test 1: Basic Stripe connection
-      try {
-        if (stripeSecretKey) {
-          const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
-          const account = await stripe.accounts.retrieve();
-          diagnostics.tests.stripe_connection = {
-            status: 'SUCCESS',
-            account_id: account.id,
-            mode: account.details_submitted ? 'live' : 'test'
-          };
-
-          // Test 2: Price validation
-          if (stripePriceId) {
-            try {
-              const price = await stripe.prices.retrieve(stripePriceId);
-              diagnostics.tests.price_validation = {
-                status: 'SUCCESS',
-                price_id: price.id,
-                amount: price.unit_amount,
-                currency: price.currency,
-                type: price.type,
-                recurring: price.recurring
-              };
-            } catch (priceError) {
-              diagnostics.tests.price_validation = {
-                status: 'FAILED',
-                error: priceError.message,
-                price_id: stripePriceId
-              };
-            }
-          } else {
-            diagnostics.tests.price_validation = {
-              status: 'SKIPPED',
-              reason: 'No STRIPE_PRICE_ID'
-            };
-          }
-
-          // Test 3: Try to create a minimal checkout session
-          try {
-            const session = await stripe.checkout.sessions.create({
-              mode: 'payment',
-              payment_method_types: ['card'],
-              line_items: [{ price_data: { currency: 'usd', unit_amount: 499, product_data: { name: 'Test Product' } }, quantity: 1 }],
-              success_url: 'https://example.com/success',
-              cancel_url: 'https://example.com/cancel',
-            });
-            diagnostics.tests.checkout_creation = {
-              status: 'SUCCESS',
-              session_id: session.id
-            };
-          } catch (checkoutError) {
-            diagnostics.tests.checkout_creation = {
-              status: 'FAILED',
-              error: checkoutError.message
-            };
-          }
-
-        } else {
-          diagnostics.tests.stripe_connection = {
-            status: 'SKIPPED',
-            reason: 'No STRIPE_SECRET_KEY'
-          };
-        }
-      } catch (error) {
-        diagnostics.tests.stripe_connection = {
-          status: 'FAILED',
-          error: error.message
-        };
-      }
-
-      return new Response(JSON.stringify(diagnostics, null, 2), {
-        status: 200,
-        headers: responseHeaders,
-      });
-    }
 
     // Initialize Supabase client to check existing subscriptions
     const supabase = createClient<Database>(
@@ -169,7 +80,6 @@ const secureHandler = withSecurity(async (req: Request) => {
     // If user exists and has active or trialing subscription, prevent checkout
     if (existingUser && !userError) {
       if (existingUser.status === 'active' || existingUser.status === 'trialing') {
-        console.log('Blocked checkout attempt for existing active user:', email, 'Status:', existingUser.status);
         return new Response(JSON.stringify({ 
           error: 'You already have an active subscription',
           message: 'You already have an active Promptr Pro subscription. Visit your account dashboard to manage it.',
@@ -180,25 +90,11 @@ const secureHandler = withSecurity(async (req: Request) => {
           headers: responseHeaders,
         });
       }
-      
-      // User exists but is inactive - log for monitoring
-      console.log('Allowing checkout for inactive user:', email, 'Status:', existingUser.status);
-    } else {
-      // New user or user doesn't exist - allow checkout
-      console.log('Allowing checkout for new user:', email);
     }
 
-    // Debug environment variables
     const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
     const stripePriceId = Deno.env.get('STRIPE_PRICE_ID');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const siteUrl = Deno.env.get('SITE_URL');
-    
-    console.log('Environment check:');
-    console.log('- STRIPE_SECRET_KEY:', stripeSecretKey ? `${stripeSecretKey.substring(0, 8)}...` : 'MISSING');
-    console.log('- STRIPE_PRICE_ID:', stripePriceId || 'MISSING');
-    console.log('- SUPABASE_URL:', supabaseUrl || 'MISSING');
-    console.log('- SITE_URL:', siteUrl || 'MISSING');
 
     if (!stripeSecretKey) {
       throw new Error('STRIPE_SECRET_KEY environment variable is missing');
@@ -215,11 +111,6 @@ const secureHandler = withSecurity(async (req: Request) => {
     // Get base URL from environment or request origin
     const baseUrl = siteUrl || req.headers.get('origin') || 'http://localhost:5173';
     
-    console.log('Creating Stripe checkout session with:');
-    console.log('- Email:', email);
-    console.log('- Price ID:', stripePriceId);
-    console.log('- Base URL:', baseUrl);
-    
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -231,9 +122,6 @@ const secureHandler = withSecurity(async (req: Request) => {
       success_url: `${baseUrl}/?payment=success`,
       cancel_url: `${baseUrl}/cancelled`,
     });
-
-    console.log('Stripe session created successfully:', session.id);
-    console.log('Redirect URL:', session.url);
 
     return new Response(JSON.stringify({ url: session.url }), {
       status: 200,

@@ -107,8 +107,6 @@ const Navigation = () => {
       }
       
     } catch (error) {
-      console.error('Delete account error:', error);
-      
       // Check if it's a Clerk error about user not existing
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {

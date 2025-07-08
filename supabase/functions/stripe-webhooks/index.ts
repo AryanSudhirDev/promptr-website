@@ -309,6 +309,65 @@ const secureHandler = withSecurity(async (req: Request) => {
         break;
       }
 
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        
+        if (!subscription.customer) {
+          console.error('Missing customer in subscription updated');
+          break;
+        }
+
+        const customerId = typeof subscription.customer === 'string' 
+          ? subscription.customer 
+          : subscription.customer.id;
+
+        console.log('Subscription updated for customer:', customerId, 'Status:', subscription.status);
+
+        // Handle trial ending - when trial ends and moves to active or past_due
+        if (subscription.status === 'active') {
+          // Trial ended and payment succeeded - user is now active
+          const { error } = await supabase
+            .from('user_access')
+            .update({ status: 'active' })
+            .eq('stripe_customer_id', customerId);
+
+          if (error) {
+            console.error('Error updating user to active after trial:', error);
+            await handleMissingCustomer(customerId, supabase, event.type);
+          } else {
+            console.log('Updated user to active status after trial end:', customerId);
+          }
+        } else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+          // Trial ended but payment failed - user goes inactive
+          const { error } = await supabase
+            .from('user_access')
+            .update({ status: 'inactive' })
+            .eq('stripe_customer_id', customerId);
+
+          if (error) {
+            console.error('Error updating user to inactive after failed trial payment:', error);
+            await handleMissingCustomer(customerId, supabase, event.type);
+          } else {
+            console.log('Updated user to inactive status after failed trial payment:', customerId);
+          }
+        } else if (subscription.status === 'canceled') {
+          // Subscription was cancelled
+          const { error } = await supabase
+            .from('user_access')
+            .update({ status: 'inactive' })
+            .eq('stripe_customer_id', customerId);
+
+          if (error) {
+            console.error('Error updating user to inactive after cancellation:', error);
+            await handleMissingCustomer(customerId, supabase, event.type);
+          } else {
+            console.log('Updated user to inactive status after cancellation:', customerId);
+          }
+        }
+        // Note: Keep 'trialing' status if subscription.status is still 'trialing'
+        break;
+      }
+
       case 'invoice.created': {
         const invoice = event.data.object as Stripe.Invoice;
         

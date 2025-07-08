@@ -109,7 +109,6 @@ Deno.serve(async (req: Request) => {
     });
 
   } catch (error) {
-    console.error('Get token error:', error);
     return new Response(JSON.stringify({ 
       success: false, 
       message: 'Internal server error' 

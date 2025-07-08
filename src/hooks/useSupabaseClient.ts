@@ -11,7 +11,6 @@ export const useSupabaseClient = () => {
         // Get the "supabase" template token from Clerk
         return await getToken({ template: 'supabase' })
       } catch (error) {
-        console.error('Failed to get Clerk token:', error)
         return null
       }
     })
