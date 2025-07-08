@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, User, LogOut, Trash2 } from 'lucide-react';
-import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
-import { handleApiError, handleSuccess } from '../utils/errorHandling';
+import { useUser, useClerk } from '@clerk/clerk-react';
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const { isSignedIn, user, isLoaded } = useUser();
   const { signOut } = useClerk();
-  const { getToken } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [deleteMessage, setDeleteMessage] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,86 +55,46 @@ const Navigation = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!user?.emailAddresses?.[0]?.emailAddress) return;
-    
-    setDeleteLoading(true);
-    try {
-      // Get the user's JWT token from Clerk
-      const token = await getToken();
-      
-      if (!token) {
-        throw new Error('No authentication token available');
-      }
+    if (!isSignedIn || !user?.primaryEmailAddress?.emailAddress) return;
 
-      // Call the bulletproof user self-deletion Edge Function
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-self-deletion`,
-        {
-          method: 'POST',
-          headers: { 
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            email: user.emailAddresses[0].emailAddress 
-          })
-        }
-      );
+    const email = user.primaryEmailAddress.emailAddress;
+    
+    if (!confirm(`Are you absolutely sure you want to delete your account for ${email}? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteMessage('');
+
+    try {
+      // Call our simple delete function
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-self-deletion`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
       const result = await response.json();
-      
-      // Handle different status codes from our bulletproof function
-      if (response.status === 206) {
-        // Partial success - most things deleted but with minor issues
-        console.log('Deletion details:', result.details);
-        handleSuccess(`${result.message || 'Account mostly deleted'} - Some minor cleanup issues occurred.`);
-      } else if (result.success) {
-        // Complete success
-        console.log('Deletion details:', result.details);
-        handleSuccess(result.message || 'Account successfully deleted');
-      } else {
-        // Failure
-        console.error('Deletion failed:', result.details);
-        
-        // Show detailed error information if available
-        const errorDetails = result.details?.errors?.length > 0 
-          ? ` Details: ${result.details.errors.slice(0, 2).join(', ')}` 
-          : '';
-        
-        throw new Error(result.error || result.message || `Account deletion failed${errorDetails}`);
-      }
 
-      // Close modals and clear loading state first
-      setDeleteLoading(false);
-      setShowDeleteModal(false);
-      setShowUserMenu(false);
-      
-      // Immediate redirect to ensure it happens
-      console.log('Redirecting to usepromptr.com...');
-      window.location.href = 'https://usepromptr.com';
-      
-      // Delete the Clerk account in background (don't wait for it)
-      user.delete().then(() => {
-        console.log('Clerk account deleted successfully');
-      }).catch((clerkError) => {
-        console.warn('Clerk deletion failed, but user already redirected:', clerkError);
-      });
-      
-    } catch (error) {
-      // Check if it's a Clerk error about user not existing
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
-        handleSuccess('Account has already been deleted');
-        setDeleteLoading(false);
-        setShowDeleteModal(false);
-        setShowUserMenu(false);
-        // Immediate redirect
+      if (result.success) {
+        // Show success message
+        setDeleteMessage('✅ Account successfully deleted! All your data has been removed.');
+        
+        // Delete from Clerk (this happens in background)
+        await user.delete();
+        
+        // Redirect to home page immediately
         window.location.href = 'https://usepromptr.com';
       } else {
-        handleApiError(error, 'Navigation - Delete Account');
-        setDeleteLoading(false);
+        setDeleteMessage(`❌ Error: ${result.message || 'Failed to delete account'}`);
       }
+    } catch (error) {
+      console.error('Delete account error:', error);
+      setDeleteMessage(`❌ Error: Failed to delete account. Please try again.`);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -337,7 +296,7 @@ const Navigation = () => {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white">Delete Account</h3>
-                <p className="text-red-200 text-sm">This action cannot be undone</p>
+                <p className="text-red-200 text-sm">{deleteMessage}</p>
               </div>
             </div>
             
@@ -359,17 +318,17 @@ const Navigation = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                disabled={deleteLoading}
+                disabled={isDeleting}
                 className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleteLoading}
+                disabled={isDeleting}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {deleteLoading ? (
+                {isDeleting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     Deleting...
