@@ -128,6 +128,15 @@ const secureHandler = withSecurity(async (req: Request) => {
             }
           } catch (stripeError) {
             console.log('Stripe error (using database status):', stripeError);
+            
+            // If customer doesn't exist in Stripe, clean up the orphaned customer ID
+            if (stripeError.code === 'resource_missing') {
+              console.log('Cleaning up orphaned customer ID:', user.stripe_customer_id);
+              await supabase
+                .from('user_access')
+                .update({ stripe_customer_id: null })
+                .eq('email', email.toLowerCase().trim());
+            }
           }
         }
 
@@ -167,6 +176,15 @@ const secureHandler = withSecurity(async (req: Request) => {
             headers: responseHeaders
           });
         } catch (stripeError) {
+          // If customer doesn't exist in Stripe, clean up the orphaned customer ID
+          if (stripeError.code === 'resource_missing') {
+            console.log('Cleaning up orphaned customer ID in portal:', user.stripe_customer_id);
+            await supabase
+              .from('user_access')
+              .update({ stripe_customer_id: null })
+              .eq('email', email.toLowerCase().trim());
+          }
+          
           return new Response(JSON.stringify({ 
             success: false, 
             error: 'Customer not found in Stripe' 
@@ -234,6 +252,15 @@ const secureHandler = withSecurity(async (req: Request) => {
             });
           }
         } catch (stripeError) {
+          // If customer doesn't exist in Stripe, clean up the orphaned customer ID
+          if (stripeError.code === 'resource_missing') {
+            console.log('Cleaning up orphaned customer ID in cancellation:', user.stripe_customer_id);
+            await supabase
+              .from('user_access')
+              .update({ stripe_customer_id: null })
+              .eq('email', email.toLowerCase().trim());
+          }
+          
           return new Response(JSON.stringify({ 
             success: false, 
             error: 'Subscription not found' 
