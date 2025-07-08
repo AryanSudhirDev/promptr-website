@@ -106,24 +106,21 @@ const Navigation = () => {
         throw new Error(result.error || result.message || `Account deletion failed${errorDetails}`);
       }
 
-      // Delete the Clerk account (this should happen regardless of partial/full success)
-      try {
-        await user.delete();
-        console.log('Clerk account deleted successfully');
-      } catch (clerkError) {
-        console.warn('Clerk deletion failed, but continuing:', clerkError);
-        // Don't throw here - we still want to redirect even if Clerk fails
-      }
-      
-      // Close modals and clear loading state
+      // Close modals and clear loading state first
       setDeleteLoading(false);
       setShowDeleteModal(false);
       setShowUserMenu(false);
       
-      // Redirect to home page
-      setTimeout(() => {
-        window.location.href = 'https://usepromptr.com';
-      }, 1500);
+      // Immediate redirect to ensure it happens
+      console.log('Redirecting to usepromptr.com...');
+      window.location.href = 'https://usepromptr.com';
+      
+      // Delete the Clerk account in background (don't wait for it)
+      user.delete().then(() => {
+        console.log('Clerk account deleted successfully');
+      }).catch((clerkError) => {
+        console.warn('Clerk deletion failed, but user already redirected:', clerkError);
+      });
       
     } catch (error) {
       // Check if it's a Clerk error about user not existing
@@ -133,9 +130,8 @@ const Navigation = () => {
         setDeleteLoading(false);
         setShowDeleteModal(false);
         setShowUserMenu(false);
-        setTimeout(() => {
-          window.location.href = 'https://usepromptr.com';
-        }, 1000);
+        // Immediate redirect
+        window.location.href = 'https://usepromptr.com';
       } else {
         handleApiError(error, 'Navigation - Delete Account');
         setDeleteLoading(false);
