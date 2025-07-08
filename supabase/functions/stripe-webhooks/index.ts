@@ -39,6 +39,38 @@ interface Database {
   };
 }
 
+// Helper function to handle missing customers
+async function handleMissingCustomer(
+  customerId: string, 
+  supabase: any, 
+  eventType: string
+): Promise<boolean> {
+  console.warn(`Customer ${customerId} not found in Stripe for event ${eventType}`);
+  
+  // Try to find user by customer ID in our database
+  const { data: user, error } = await supabase
+    .from('user_access')
+    .select('email')
+    .eq('stripe_customer_id', customerId)
+    .single();
+
+  if (user && !error) {
+    console.log(`Found user ${user.email} with missing customer ${customerId}, cleaning up...`);
+    
+    // Clean up the orphaned customer ID
+    await supabase
+      .from('user_access')
+      .update({ stripe_customer_id: null })
+      .eq('stripe_customer_id', customerId);
+      
+    console.log(`Cleaned up orphaned customer ID for ${user.email}`);
+    return true; // Handled successfully
+  }
+  
+  console.warn(`No user found for customer ${customerId}, ignoring event`);
+  return false; // Not found, but not an error
+}
+
 // Secure webhook handler
 const secureHandler = withSecurity(async (req: Request) => {
   const responseHeaders = getResponseHeaders(req);
@@ -100,7 +132,7 @@ const secureHandler = withSecurity(async (req: Request) => {
           : session.customer.id;
         const email = session.customer_email;
 
-        console.log('Processing checkout completion for:', email);
+        console.log('Processing checkout completion for:', email, 'Customer:', customerId);
 
         // Check if user already exists
         const { data: existingUser, error: fetchError } = await supabase
@@ -174,6 +206,7 @@ const secureHandler = withSecurity(async (req: Request) => {
 
         console.log('Processing successful payment for customer:', customerId);
 
+        // Try to update user status
         const { error } = await supabase
           .from('user_access')
           .update({ status: 'active' })
@@ -181,6 +214,8 @@ const secureHandler = withSecurity(async (req: Request) => {
 
         if (error) {
           console.error('Error updating user to active:', error);
+          // Handle case where customer doesn't exist in our database
+          await handleMissingCustomer(customerId, supabase, event.type);
         } else {
           console.log('Updated user to active status for customer:', customerId);
         }
@@ -208,6 +243,7 @@ const secureHandler = withSecurity(async (req: Request) => {
 
         if (error) {
           console.error('Error updating user to inactive:', error);
+          await handleMissingCustomer(customerId, supabase, event.type);
         } else {
           console.log('Updated user to inactive status for customer:', customerId);
         }
@@ -235,6 +271,7 @@ const secureHandler = withSecurity(async (req: Request) => {
 
         if (error) {
           console.error('Error updating user to inactive:', error);
+          await handleMissingCustomer(customerId, supabase, event.type);
         } else {
           console.log('Updated user to inactive status for customer:', customerId);
         }
@@ -256,6 +293,19 @@ const secureHandler = withSecurity(async (req: Request) => {
         console.log('Trial ending soon for customer:', customerId);
         // Note: Keep status as 'trialing' until trial actually ends
         // This event is just a warning that trial will end soon
+        
+        // Verify customer exists in our database
+        const { data: user, error } = await supabase
+          .from('user_access')
+          .select('email')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (error) {
+          await handleMissingCustomer(customerId, supabase, event.type);
+        } else {
+          console.log('Trial ending notification for user:', user.email);
+        }
         break;
       }
 
@@ -269,7 +319,24 @@ const secureHandler = withSecurity(async (req: Request) => {
           break;
         }
 
-        console.log('Invoice created for customer:', invoice.customer);
+        const customerId = typeof invoice.customer === 'string' 
+          ? invoice.customer 
+          : invoice.customer.id;
+
+        console.log('Invoice created for customer:', customerId);
+        
+        // Verify customer exists in our database
+        const { data: user, error } = await supabase
+          .from('user_access')
+          .select('email')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (error) {
+          await handleMissingCustomer(customerId, supabase, event.type);
+        } else {
+          console.log('Invoice created for user:', user.email);
+        }
         // No status change needed here - wait for payment_succeeded or payment_failed
         break;
       }
