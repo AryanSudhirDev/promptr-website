@@ -122,7 +122,7 @@ const Navigation = () => {
       
       // Redirect to home page
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = 'https://usepromptr.com';
       }, 1500);
       
     } catch (error) {
@@ -134,7 +134,7 @@ const Navigation = () => {
         setShowDeleteModal(false);
         setShowUserMenu(false);
         setTimeout(() => {
-          window.location.href = '/';
+          window.location.href = 'https://usepromptr.com';
         }, 1000);
       } else {
         handleApiError(error, 'Navigation - Delete Account');
