@@ -84,21 +84,67 @@ const secureHandler = withSecurity(async (req: Request) => {
       });
     }
 
-    // For other actions, user must exist
+    // Auto-create missing user records for authenticated users
+    // This handles cases where webhook failed during payment/signup
+    let userRecord = user;
     if (userError || !user) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'User not found' 
-      }), {
-        status: 404,
-        headers: responseHeaders
-      });
+      console.log(`User not found for subscription action: ${email}, attempting auto-creation...`);
+      
+      try {
+        // Generate new access token
+        const accessToken = crypto.randomUUID();
+        
+        // Create user record with trialing status
+        // Stripe customer ID will be added later by webhook or manual process
+        const { data: newUser, error: createError } = await supabase
+          .from('user_access')
+          .insert({
+            email: email.toLowerCase().trim(),
+            access_token: accessToken,
+            stripe_customer_id: null, // Will be populated by webhook when it works
+            status: 'trialing' // Default to trialing for new auto-created users
+          })
+          .select('*')
+          .single();
+
+        if (createError) {
+          console.error('Failed to auto-create user for subscription:', createError);
+          
+          // If auto-creation fails, return the original error message
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: 'User not found',
+            debug: `Auto-creation failed: ${createError.message}`
+          }), {
+            status: 404,
+            headers: responseHeaders
+          });
+        }
+
+        console.log(`Successfully auto-created user for subscription: ${email} with token: ${accessToken}`);
+        userRecord = newUser; // Use the newly created user
+        
+      } catch (autoCreateError) {
+        console.error('Auto-creation exception in subscription:', autoCreateError);
+        
+        // Fall back to original error message
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'User not found' 
+        }), {
+          status: 404,
+          headers: responseHeaders
+        });
+      }
     }
+
+    // Now we have a valid user record (either existing or auto-created)
+    const finalUser = userRecord;
 
     switch (action) {
       case 'get_subscription_status': {
         let subscriptionData = {
-          status: user.status,
+          status: finalUser.status,
           plan: 'Pro Plan',
           amount: 499,
           interval: 'month',
@@ -107,10 +153,10 @@ const secureHandler = withSecurity(async (req: Request) => {
           cancel_at_period_end: false,
         };
 
-        if (user.stripe_customer_id) {
+        if (finalUser.stripe_customer_id) {
           try {
             const subscriptions = await stripe.subscriptions.list({
-              customer: user.stripe_customer_id,
+              customer: finalUser.stripe_customer_id,
               status: 'all',
               limit: 1,
             });
@@ -131,7 +177,7 @@ const secureHandler = withSecurity(async (req: Request) => {
             
             // If customer doesn't exist in Stripe, clean up the orphaned customer ID
             if (stripeError.code === 'resource_missing') {
-              console.log('Cleaning up orphaned customer ID:', user.stripe_customer_id);
+              console.log('Cleaning up orphaned customer ID:', finalUser.stripe_customer_id);
               await supabase
                 .from('user_access')
                 .update({ stripe_customer_id: null })
@@ -150,7 +196,7 @@ const secureHandler = withSecurity(async (req: Request) => {
       }
 
       case 'create_customer_portal': {
-        if (!user.stripe_customer_id) {
+        if (!finalUser.stripe_customer_id) {
           return new Response(JSON.stringify({ 
             success: false, 
             error: 'No Stripe customer ID found' 
@@ -164,7 +210,7 @@ const secureHandler = withSecurity(async (req: Request) => {
           const baseUrl = Deno.env.get('SITE_URL') || req.headers.get('origin') || 'http://localhost:5173';
           
           const session = await stripe.billingPortal.sessions.create({
-            customer: user.stripe_customer_id,
+            customer: finalUser.stripe_customer_id,
             return_url: `${baseUrl}/account`,
           });
 
@@ -178,7 +224,7 @@ const secureHandler = withSecurity(async (req: Request) => {
         } catch (stripeError) {
           // If customer doesn't exist in Stripe, clean up the orphaned customer ID
           if (stripeError.code === 'resource_missing') {
-            console.log('Cleaning up orphaned customer ID in portal:', user.stripe_customer_id);
+            console.log('Cleaning up orphaned customer ID in portal:', finalUser.stripe_customer_id);
             await supabase
               .from('user_access')
               .update({ stripe_customer_id: null })
@@ -196,19 +242,27 @@ const secureHandler = withSecurity(async (req: Request) => {
       }
 
       case 'cancel_subscription': {
-        if (!user.stripe_customer_id) {
+        // Handle users without Stripe customer ID (auto-created users or webhook failures)
+        if (!finalUser.stripe_customer_id) {
+          // For users without Stripe customer ID, just update database status to inactive
+          // This handles cases where user completed checkout but webhook failed to populate customer ID
+          await supabase
+            .from('user_access')
+            .update({ status: 'inactive' })
+            .eq('email', email.toLowerCase().trim());
+          
           return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'No Stripe customer ID found' 
+            success: true, 
+            message: 'Your trial has been cancelled' 
           }), {
-            status: 400,
+            status: 200,
             headers: responseHeaders
           });
         }
 
         try {
           const subscriptions = await stripe.subscriptions.list({
-            customer: user.stripe_customer_id,
+            customer: finalUser.stripe_customer_id,
             status: 'all',
             limit: 10,
           });
@@ -218,11 +272,18 @@ const secureHandler = withSecurity(async (req: Request) => {
           );
 
           if (!activeSubscription) {
+            // No Stripe subscription found, but user exists in database
+            // Cancel by updating database status
+            await supabase
+              .from('user_access')
+              .update({ status: 'inactive' })
+              .eq('email', email.toLowerCase().trim());
+            
             return new Response(JSON.stringify({ 
-              success: false, 
-              error: 'No active subscription found' 
+              success: true, 
+              message: 'Your trial has been cancelled' 
             }), {
-              status: 400,
+              status: 200,
               headers: responseHeaders
             });
           }
@@ -252,18 +313,31 @@ const secureHandler = withSecurity(async (req: Request) => {
             });
           }
         } catch (stripeError) {
-          // If customer doesn't exist in Stripe, clean up the orphaned customer ID
+          console.error('Stripe error during cancellation:', stripeError);
+          
+          // If customer doesn't exist in Stripe, clean up the orphaned customer ID and cancel in database
           if (stripeError.code === 'resource_missing') {
-            console.log('Cleaning up orphaned customer ID in cancellation:', user.stripe_customer_id);
+            console.log('Cleaning up orphaned customer ID and cancelling trial:', finalUser.stripe_customer_id);
             await supabase
               .from('user_access')
-              .update({ stripe_customer_id: null })
+              .update({ 
+                stripe_customer_id: null,
+                status: 'inactive'
+              })
               .eq('email', email.toLowerCase().trim());
+            
+            return new Response(JSON.stringify({ 
+              success: true, 
+              message: 'Your trial has been cancelled' 
+            }), {
+              status: 200,
+              headers: responseHeaders
+            });
           }
           
           return new Response(JSON.stringify({ 
             success: false, 
-            error: 'Subscription not found' 
+            error: 'Failed to cancel subscription' 
           }), {
             status: 400,
             headers: responseHeaders

@@ -67,7 +67,7 @@ const Navigation = () => {
         throw new Error('No authentication token available');
       }
 
-      // Call the proper user self-deletion Edge Function
+      // Call the bulletproof user self-deletion Edge Function
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-self-deletion`,
         {
@@ -85,26 +85,45 @@ const Navigation = () => {
 
       const result = await response.json();
       
-      if (!response.ok) {
-        throw new Error(result.error || `Server error: ${response.status}`);
+      // Handle different status codes from our bulletproof function
+      if (response.status === 206) {
+        // Partial success - most things deleted but with minor issues
+        console.log('Deletion details:', result.details);
+        handleSuccess(`${result.message || 'Account mostly deleted'} - Some minor cleanup issues occurred.`);
+      } else if (result.success) {
+        // Complete success
+        console.log('Deletion details:', result.details);
+        handleSuccess(result.message || 'Account successfully deleted');
+      } else {
+        // Failure
+        console.error('Deletion failed:', result.details);
+        
+        // Show detailed error information if available
+        const errorDetails = result.details?.errors?.length > 0 
+          ? ` Details: ${result.details.errors.slice(0, 2).join(', ')}` 
+          : '';
+        
+        throw new Error(result.error || result.message || `Account deletion failed${errorDetails}`);
       }
 
-      if (result.success) {
-        handleSuccess(result.message || 'Account successfully deleted');
-        
-        // Delete the Clerk account
+      // Delete the Clerk account (this should happen regardless of partial/full success)
+      try {
         await user.delete();
-        
-        // Close modals and clear loading state
-        setDeleteLoading(false);
-        setShowDeleteModal(false);
-        setShowUserMenu(false);
-        
-        // Redirect to home page
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1000);
+        console.log('Clerk account deleted successfully');
+      } catch (clerkError) {
+        console.warn('Clerk deletion failed, but continuing:', clerkError);
+        // Don't throw here - we still want to redirect even if Clerk fails
       }
+      
+      // Close modals and clear loading state
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+      setShowUserMenu(false);
+      
+      // Redirect to home page
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
       
     } catch (error) {
       // Check if it's a Clerk error about user not existing

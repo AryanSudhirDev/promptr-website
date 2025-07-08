@@ -83,19 +83,68 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (error || !user) {
-      // Check if this is a missing user scenario (user authenticated via Clerk but not in database)
-      // This can happen if webhook failed during payment or user signed up but never paid
+      // Auto-create missing user records for authenticated users
+      // This handles cases where webhook failed during payment/signup
+      console.log(`User not found: ${email}, attempting auto-creation...`);
       
-      // For now, return the standard error message
-      // Later we could add automatic user creation here for authenticated users
-      return new Response(JSON.stringify({ 
-        success: false, 
-        message: 'No access token found for this email. Please complete your purchase first.',
-        suggestion: 'If you recently completed payment, please try again in a few minutes or contact support.'
-      }), { 
-        status: 404, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      try {
+        // Generate new access token
+        const accessToken = crypto.randomUUID();
+        
+        // Create user record with trialing status
+        // Stripe customer ID will be added later by webhook or manual process
+        const { data: newUser, error: createError } = await supabase
+          .from('user_access')
+          .insert({
+            email: email.toLowerCase().trim(),
+            access_token: accessToken,
+            stripe_customer_id: null, // Will be populated by webhook when it works
+            status: 'trialing' // Default to trialing for new auto-created users
+          })
+          .select('access_token, status')
+          .single();
+
+        if (createError) {
+          console.error('Failed to auto-create user:', createError);
+          
+          // If auto-creation fails, return the original error message
+          return new Response(JSON.stringify({ 
+            success: false, 
+            message: 'No access token found for this email. Please complete your purchase first.',
+            suggestion: 'If you recently completed payment, please try again in a few minutes or contact support.',
+            debug: `Auto-creation failed: ${createError.message}`
+          }), { 
+            status: 404, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        console.log(`Successfully auto-created user: ${email} with token: ${accessToken}`);
+        
+        // Return the newly created user's token
+        return new Response(JSON.stringify({
+          success: true,
+          token: newUser.access_token,
+          status: newUser.status,
+          auto_created: true // Flag to indicate this was auto-created
+        }), { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+        
+      } catch (autoCreateError) {
+        console.error('Auto-creation exception:', autoCreateError);
+        
+        // Fall back to original error message
+        return new Response(JSON.stringify({ 
+          success: false, 
+          message: 'No access token found for this email. Please complete your purchase first.',
+          suggestion: 'If you recently completed payment, please try again in a few minutes or contact support.'
+        }), { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
     }
 
     // Return token and status
