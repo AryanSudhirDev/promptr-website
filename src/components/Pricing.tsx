@@ -11,9 +11,11 @@ const Pricing = () => {
   
   const features = [
     'Unlimited prompt refinements',
-    'One-click AI enhancement',
-    'Prompt creativity control',
-    'Custom context integration'
+    'AI-powered code explanations',
+    'Advanced context awareness',
+    'Custom prompt templates',
+    'Multi-language support',
+    'Batch processing capability'
   ];
 
   // Check user's subscription status when signed in
