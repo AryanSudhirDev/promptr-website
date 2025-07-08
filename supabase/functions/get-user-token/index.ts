@@ -1,7 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { withSecurity, getResponseHeaders } from '../_shared/security-config.ts';
-import { authOperationsLimiter } from '../_shared/rate-limiter.ts';
-import { InputValidator, createValidationErrorResponse } from '../_shared/validation.ts';
+import { apiGeneralLimiter } from '../_shared/rate-limiter.ts';
 
 interface Database {
   public: {
@@ -21,123 +20,69 @@ interface Database {
   };
 }
 
-interface GetTokenRequest {
-  email: string;
-}
-
-interface GetTokenResponse {
-  success: boolean;
-  token?: string;
-  status?: string;
-  message?: string;
-}
-
-// Secure handler using the new security middleware
+// Secure handler using the security middleware
 const secureHandler = withSecurity(async (req: Request) => {
   const responseHeaders = getResponseHeaders(req);
   
   try {
+    const { email } = await req.json();
+    if (!email || typeof email !== 'string') {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        message: 'Missing email' 
+      }), { 
+        status: 400, 
+        headers: responseHeaders
+      });
+    }
+
     // Initialize Supabase client with service role key
     const supabase = createClient<Database>(
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
 
-    // Parse request body
-    let requestData: GetTokenRequest;
-    try {
-      requestData = await req.json();
-    } catch (error) {
-      console.error('Invalid JSON in request body:', error);
-      return new Response(
-        JSON.stringify({ success: false, message: 'Invalid request format' }), 
-        { 
-          status: 400, 
-          headers: responseHeaders
-        }
-      );
-    }
-
-    // Validate request body structure
-    const bodyValidation = InputValidator.validateRequestBody(requestData, ['email']);
-    if (!bodyValidation.isValid) {
-      return createValidationErrorResponse(bodyValidation.errors, responseHeaders);
-    }
-
-    // Validate email
-    const emailValidation = InputValidator.validateEmail(requestData.email);
-    if (!emailValidation.isValid) {
-      return createValidationErrorResponse(emailValidation.errors, responseHeaders);
-    }
-
-    const email = emailValidation.sanitized;
-
     // Look up user by email
     const { data: user, error } = await supabase
       .from('user_access')
       .select('access_token, status')
-      .eq('email', email)
+      .eq('email', email.toLowerCase().trim())
       .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No user found
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            message: 'No access token found for this email. Please complete your purchase first.' 
-          }), 
-          { 
-            status: 404, 
-            headers: responseHeaders
-          }
-        );
-      } else {
-        // Database error
-        console.error('Database error during user lookup:', error);
-        return new Response(
-          JSON.stringify({ success: false, message: 'Internal server error' }), 
-          { 
-            status: 500, 
-            headers: responseHeaders
-          }
-        );
-      }
+    if (error || !user) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        message: 'No access token found for this email. Please complete your purchase first.' 
+      }), { 
+        status: 404, 
+        headers: responseHeaders
+      });
     }
 
     // Return token and status
-    const response: GetTokenResponse = {
+    return new Response(JSON.stringify({
       success: true,
       token: user.access_token,
       status: user.status
-    };
-
-    return new Response(
-      JSON.stringify(response), 
-      { 
-        status: 200, 
-        headers: responseHeaders
-      }
-    );
+    }), { 
+      status: 200, 
+      headers: responseHeaders
+    });
 
   } catch (error) {
-    // Log error without sensitive information
-    console.error('Get token error:', {
-      message: error.message,
-      stack: error.stack?.split('\n')[0] // Only first line of stack
+    console.error('Get token error:', error);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      message: 'Internal server error' 
+    }), { 
+      status: 500, 
+      headers: responseHeaders
     });
-    return new Response(
-      JSON.stringify({ success: false, message: 'Internal server error' }), 
-      { 
-        status: 500, 
-        headers: responseHeaders
-      }
-    );
   }
 }, {
-  rateLimiter: authOperationsLimiter,
+  allowedMethods: ['POST', 'OPTIONS'],
+  rateLimiter: apiGeneralLimiter,
   requireValidOrigin: false
 });
 
-// Export the secure handler
 Deno.serve(secureHandler); 
