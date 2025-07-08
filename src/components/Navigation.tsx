@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, User, LogOut, Trash2 } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { handleApiError, handleSuccess } from '../utils/errorHandling';
 
 const Navigation = () => {
@@ -11,6 +11,7 @@ const Navigation = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { isSignedIn, user, isLoaded } = useUser();
   const { signOut } = useClerk();
+  const { getToken } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,49 +60,48 @@ const Navigation = () => {
     
     setDeleteLoading(true);
     try {
-      const email = user.emailAddresses[0].emailAddress;
+      // Get the user's JWT token from Clerk
+      const token = await getToken();
       
-      // Try to clean up backend data, but don't fail if it doesn't work
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-subscription`,
-          {
-            method: 'POST',
-            headers: { 
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-              action: 'delete_account', 
-              email: email 
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Backend cleanup result:', result);
-        } else {
-          console.log('Backend cleanup failed, but continuing with account deletion');
-        }
-      } catch (backendError) {
-        console.log('Backend cleanup failed:', backendError, 'but continuing with account deletion');
+      if (!token) {
+        throw new Error('No authentication token available');
       }
 
-      // Delete the Clerk account (this is the main action)
-      await user.delete();
+      // Call the proper user self-deletion Edge Function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-self-deletion`,
+        {
+          method: 'POST',
+          headers: { 
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      const result = await response.json();
       
-      // Close modals and clear loading state
-      setDeleteLoading(false);
-      setShowDeleteModal(false);
-      setShowUserMenu(false);
-      
-      // Redirect to home page with success message
-      handleSuccess('Your account has been permanently deleted');
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1000);
+      if (!response.ok) {
+        throw new Error(result.error || `Server error: ${response.status}`);
+      }
+
+      if (result.success) {
+        handleSuccess(result.message || 'Account successfully deleted');
+        
+        // Delete the Clerk account
+        await user.delete();
+        
+        // Close modals and clear loading state
+        setDeleteLoading(false);
+        setShowDeleteModal(false);
+        setShowUserMenu(false);
+        
+        // Redirect to home page
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+      }
       
     } catch (error) {
       console.error('Delete account error:', error);

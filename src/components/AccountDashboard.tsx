@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Copy, Eye, EyeOff, ExternalLink, CreditCard, Calendar, User, X, AlertTriangle } from 'lucide-react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { RequireAuth } from './AuthWrapper';
 import { enhancedFetch, handleApiError, handleSuccess } from '../utils/errorHandling';
 
@@ -24,6 +24,7 @@ const AccountDashboard = () => {
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const { user } = useUser();
+  const { getToken } = useAuth();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -31,6 +32,12 @@ const AccountDashboard = () => {
       
       try {
         const email = user.emailAddresses[0].emailAddress;
+        
+        // Get the user's JWT token from Clerk
+        const token = await getToken();
+        if (!token) {
+          throw new Error('No authentication token available');
+        }
         
         // Get the user's access token and subscription data in parallel
         const [tokenResponse, subscriptionResponse] = await Promise.all([
@@ -40,7 +47,8 @@ const AccountDashboard = () => {
               method: 'POST',
               headers: { 
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
               },
               body: JSON.stringify({ email }),
             },
@@ -52,7 +60,8 @@ const AccountDashboard = () => {
               method: 'POST',
               headers: { 
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
               },
               body: JSON.stringify({ action: 'get_subscription_status', email }),
             },
@@ -79,7 +88,7 @@ const AccountDashboard = () => {
     };
 
     fetchUserData();
-  }, [user]);
+  }, [user, getToken]);
 
   const copyToken = async () => {
     if (userToken) {
@@ -98,13 +107,20 @@ const AccountDashboard = () => {
     if (!user?.emailAddresses?.[0]?.emailAddress) return;
     
     try {
+      // Get the user's JWT token from Clerk
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
       const response = await enhancedFetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-subscription`,
         {
           method: 'POST',
           headers: { 
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({ 
             action: 'create_customer_portal', 
@@ -130,13 +146,19 @@ const AccountDashboard = () => {
     if (!user?.emailAddresses?.[0]?.emailAddress) return;
     
     try {
+      // Get the user's JWT token from Clerk
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`,
         {
           method: 'POST',
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ email: user.emailAddresses[0].emailAddress }),
@@ -176,13 +198,20 @@ const AccountDashboard = () => {
     
     setCancelLoading(true);
     try {
+      // Get the user's JWT token from Clerk
+      const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
       const response = await enhancedFetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-subscription`,
         {
           method: 'POST',
           headers: { 
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({ 
             action: 'cancel_subscription', 
