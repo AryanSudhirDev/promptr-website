@@ -173,21 +173,21 @@ const Navigation = () => {
                           </p>
                         </div>
                         <button
-                          onClick={handleSignOut}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-2"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Sign out
-                        </button>
-                        <button
                           onClick={() => {
                             setShowDeleteModal(true);
                             setShowUserMenu(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-red-300 hover:bg-red-600/20 hover:text-red-200 transition-colors flex items-center gap-2 border-t border-gray-700"
+                          className="w-full text-left px-4 py-2 text-red-300 hover:bg-red-600/20 hover:text-red-200 transition-colors flex items-center gap-2"
                         >
                           <Trash2 className="w-4 h-4" />
                           Delete Account
+                        </button>
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-2 border-t border-gray-700"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign out
                         </button>
                       </div>
                     )}
@@ -256,12 +256,6 @@ const Navigation = () => {
                     Dashboard
                   </button>
                   <button
-                    onClick={handleSignOut}
-                    className="block w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-300"
-                  >
-                    Sign out
-                  </button>
-                  <button
                     onClick={() => {
                       setShowDeleteModal(true);
                       setIsMobileMenuOpen(false);
@@ -269,6 +263,12 @@ const Navigation = () => {
                     className="block w-full text-left px-3 py-2 text-red-300 hover:text-red-200 hover:bg-red-600/20 rounded-md transition-colors duration-300"
                   >
                     Delete Account
+                  </button>
+                  <button
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-300"
+                  >
+                    Sign out
                   </button>
                 </div>
               ) : (
