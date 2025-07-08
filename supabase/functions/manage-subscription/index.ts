@@ -400,4 +400,10 @@ const secureHandler = withSecurity(async (req: Request) => {
       headers: { ...responseHeaders, 'Content-Type': 'application/json' }
     });
   }
-}); 
+}, {
+  rateLimiter: apiGeneralLimiter,
+  requireValidOrigin: false
+});
+
+// Export the secure handler
+Deno.serve(secureHandler); 

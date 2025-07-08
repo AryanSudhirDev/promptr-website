@@ -136,7 +136,7 @@ const secureHandler = withSecurity(async (req: Request) => {
   }
 }, {
   rateLimiter: authOperationsLimiter,
-  requireValidOrigin: true
+  requireValidOrigin: false
 });
 
 // Export the secure handler

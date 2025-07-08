@@ -1,5 +1,7 @@
 import Stripe from 'npm:stripe@14';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { withSecurity, getResponseHeaders } from '../_shared/security-config.ts';
+import { apiGeneralLimiter } from '../_shared/rate-limiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,139 +27,138 @@ interface Database {
   };
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers: corsHeaders });
-  }
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405, headers: corsHeaders });
-  }
-
-  const { email } = await req.json();
-  if (!email || typeof email !== 'string') {
-    return new Response('Missing email', { status: 400, headers: corsHeaders });
-  }
-
-  // Quick test endpoint - add ?test=1 to just check environment
-  const url = new URL(req.url);
-  if (url.searchParams.get('test') === '1') {
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-    const stripePriceId = Deno.env.get('STRIPE_PRICE_ID');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const siteUrl = Deno.env.get('SITE_URL');
-    
-    return new Response(JSON.stringify({
-      test: true,
-      environment: {
-        STRIPE_SECRET_KEY: stripeSecretKey ? `${stripeSecretKey.substring(0, 8)}...` : 'MISSING',
-        STRIPE_PRICE_ID: stripePriceId || 'MISSING',
-        SUPABASE_URL: supabaseUrl || 'MISSING',
-        SITE_URL: siteUrl || 'MISSING'
-      }
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Comprehensive diagnostic test - add ?debug=1
-  if (url.searchParams.get('debug') === '1') {
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-    const stripePriceId = Deno.env.get('STRIPE_PRICE_ID');
-    
-    const diagnostics = {
-      timestamp: new Date().toISOString(),
-      environment: {
-        STRIPE_SECRET_KEY: stripeSecretKey ? `${stripeSecretKey.substring(0, 8)}...` : 'MISSING',
-        STRIPE_PRICE_ID: stripePriceId || 'MISSING',
-        key_type: stripeSecretKey ? (stripeSecretKey.startsWith('sk_live_') ? 'LIVE' : stripeSecretKey.startsWith('sk_test_') ? 'TEST' : 'UNKNOWN') : 'MISSING'
-      },
-      tests: {}
-    };
-
-    // Test 1: Basic Stripe connection
-    try {
-      if (stripeSecretKey) {
-        const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
-        const account = await stripe.accounts.retrieve();
-        diagnostics.tests.stripe_connection = {
-          status: 'SUCCESS',
-          account_id: account.id,
-          mode: account.details_submitted ? 'live' : 'test'
-        };
-
-        // Test 2: Price validation
-        if (stripePriceId) {
-          try {
-            const price = await stripe.prices.retrieve(stripePriceId);
-            diagnostics.tests.price_validation = {
-              status: 'SUCCESS',
-              price_id: price.id,
-              amount: price.unit_amount,
-              currency: price.currency,
-              type: price.type,
-              recurring: price.recurring
-            };
-          } catch (priceError) {
-            diagnostics.tests.price_validation = {
-              status: 'FAILED',
-              error: priceError.message,
-              price_id: stripePriceId
-            };
-          }
-        } else {
-          diagnostics.tests.price_validation = {
-            status: 'SKIPPED',
-            reason: 'No STRIPE_PRICE_ID'
-          };
-        }
-
-        // Test 3: Try to create a minimal checkout session
-        try {
-          const session = await stripe.checkout.sessions.create({
-            mode: 'payment',
-            payment_method_types: ['card'],
-            line_items: [{ price_data: { currency: 'usd', unit_amount: 499, product_data: { name: 'Test Product' } }, quantity: 1 }],
-            success_url: 'https://example.com/success',
-            cancel_url: 'https://example.com/cancel',
-          });
-          diagnostics.tests.checkout_creation = {
-            status: 'SUCCESS',
-            session_id: session.id
-          };
-        } catch (checkoutError) {
-          diagnostics.tests.checkout_creation = {
-            status: 'FAILED',
-            error: checkoutError.message
-          };
-        }
-
-      } else {
-        diagnostics.tests.stripe_connection = {
-          status: 'SKIPPED',
-          reason: 'No STRIPE_SECRET_KEY'
-        };
-      }
-    } catch (error) {
-      diagnostics.tests.stripe_connection = {
-        status: 'FAILED',
-        error: error.message
-      };
-    }
-
-    return new Response(JSON.stringify(diagnostics, null, 2), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Initialize Supabase client to check existing subscriptions
-  const supabase = createClient<Database>(
-    Deno.env.get('SUPABASE_URL') || '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-  );
+// Secure handler using the security middleware
+const secureHandler = withSecurity(async (req: Request) => {
+  const responseHeaders = getResponseHeaders(req);
 
   try {
+    const { email } = await req.json();
+    if (!email || typeof email !== 'string') {
+      return new Response(JSON.stringify({ error: 'Missing email' }), { 
+        status: 400, 
+        headers: responseHeaders
+      });
+    }
+
+    // Quick test endpoint - add ?test=1 to just check environment
+    const url = new URL(req.url);
+    if (url.searchParams.get('test') === '1') {
+      const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+      const stripePriceId = Deno.env.get('STRIPE_PRICE_ID');
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const siteUrl = Deno.env.get('SITE_URL');
+      
+      return new Response(JSON.stringify({
+        test: true,
+        environment: {
+          STRIPE_SECRET_KEY: stripeSecretKey ? `${stripeSecretKey.substring(0, 8)}...` : 'MISSING',
+          STRIPE_PRICE_ID: stripePriceId || 'MISSING',
+          SUPABASE_URL: supabaseUrl || 'MISSING',
+          SITE_URL: siteUrl || 'MISSING'
+        }
+      }), {
+        status: 200,
+        headers: responseHeaders,
+      });
+    }
+
+    // Comprehensive diagnostic test - add ?debug=1
+    if (url.searchParams.get('debug') === '1') {
+      const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+      const stripePriceId = Deno.env.get('STRIPE_PRICE_ID');
+      
+      const diagnostics: any = {
+        timestamp: new Date().toISOString(),
+        environment: {
+          STRIPE_SECRET_KEY: stripeSecretKey ? `${stripeSecretKey.substring(0, 8)}...` : 'MISSING',
+          STRIPE_PRICE_ID: stripePriceId || 'MISSING',
+          key_type: stripeSecretKey ? (stripeSecretKey.startsWith('sk_live_') ? 'LIVE' : stripeSecretKey.startsWith('sk_test_') ? 'TEST' : 'UNKNOWN') : 'MISSING'
+        },
+        tests: {}
+      };
+
+      // Test 1: Basic Stripe connection
+      try {
+        if (stripeSecretKey) {
+          const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
+          const account = await stripe.accounts.retrieve();
+          diagnostics.tests.stripe_connection = {
+            status: 'SUCCESS',
+            account_id: account.id,
+            mode: account.details_submitted ? 'live' : 'test'
+          };
+
+          // Test 2: Price validation
+          if (stripePriceId) {
+            try {
+              const price = await stripe.prices.retrieve(stripePriceId);
+              diagnostics.tests.price_validation = {
+                status: 'SUCCESS',
+                price_id: price.id,
+                amount: price.unit_amount,
+                currency: price.currency,
+                type: price.type,
+                recurring: price.recurring
+              };
+            } catch (priceError) {
+              diagnostics.tests.price_validation = {
+                status: 'FAILED',
+                error: priceError.message,
+                price_id: stripePriceId
+              };
+            }
+          } else {
+            diagnostics.tests.price_validation = {
+              status: 'SKIPPED',
+              reason: 'No STRIPE_PRICE_ID'
+            };
+          }
+
+          // Test 3: Try to create a minimal checkout session
+          try {
+            const session = await stripe.checkout.sessions.create({
+              mode: 'payment',
+              payment_method_types: ['card'],
+              line_items: [{ price_data: { currency: 'usd', unit_amount: 499, product_data: { name: 'Test Product' } }, quantity: 1 }],
+              success_url: 'https://example.com/success',
+              cancel_url: 'https://example.com/cancel',
+            });
+            diagnostics.tests.checkout_creation = {
+              status: 'SUCCESS',
+              session_id: session.id
+            };
+          } catch (checkoutError) {
+            diagnostics.tests.checkout_creation = {
+              status: 'FAILED',
+              error: checkoutError.message
+            };
+          }
+
+        } else {
+          diagnostics.tests.stripe_connection = {
+            status: 'SKIPPED',
+            reason: 'No STRIPE_SECRET_KEY'
+          };
+        }
+      } catch (error) {
+        diagnostics.tests.stripe_connection = {
+          status: 'FAILED',
+          error: error.message
+        };
+      }
+
+      return new Response(JSON.stringify(diagnostics, null, 2), {
+        status: 200,
+        headers: responseHeaders,
+      });
+    }
+
+    // Initialize Supabase client to check existing subscriptions
+    const supabase = createClient<Database>(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+
     // Check if user already has a subscription
     const { data: existingUser, error: userError } = await supabase
       .from('user_access')
@@ -176,7 +177,7 @@ Deno.serve(async (req: Request) => {
           hasActiveSubscription: true
         }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: responseHeaders,
         });
       }
       
@@ -236,7 +237,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ url: session.url }), {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: responseHeaders,
     });
   } catch (err) {
     console.error('create-checkout-session error', err);
@@ -270,7 +271,13 @@ Deno.serve(async (req: Request) => {
       timestamp: new Date().toISOString()
     }), { 
       status: 500, 
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: responseHeaders
     });
   }
-}); 
+}, {
+  allowedMethods: ['POST', 'OPTIONS'],
+  rateLimiter: apiGeneralLimiter,
+  requireValidOrigin: false // Allow public access for payments
+});
+
+Deno.serve(secureHandler); 

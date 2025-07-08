@@ -131,10 +131,13 @@ const secureHandler = withSecurity(async (req: Request) => {
           }
         } else {
           // Create new user with access token
+          const accessToken = crypto.randomUUID();
+          
           const { error: insertError } = await supabase
             .from('user_access')
             .insert({
               email: email,
+              access_token: accessToken,
               stripe_customer_id: customerId,
               status: 'trialing'
             });
@@ -142,7 +145,7 @@ const secureHandler = withSecurity(async (req: Request) => {
           if (insertError) {
             console.error('Error creating new user:', insertError);
           } else {
-            console.log('Created new user with trialing status:', email);
+            console.log('Created new user with trialing status and access token:', email);
           }
         }
         break;
