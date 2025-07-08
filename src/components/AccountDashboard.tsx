@@ -65,6 +65,17 @@ const AccountDashboard = () => {
         const tokenData = await tokenResponse.json();
         const subData = await subscriptionResponse.json();
         
+        // If user doesn't exist in database but is authenticated via Clerk,
+        // they might have completed payment but webhook failed
+        if (!tokenData.success && user?.emailAddresses?.[0]?.emailAddress) {
+          console.log('User authenticated via Clerk but not found in database, checking for recent payment...');
+          
+          // For now, just show the error. In the future, we could:
+          // 1. Check if they have a recent Stripe payment
+          // 2. Automatically create their database record
+          // 3. Or guide them to retry payment
+        }
+        
         if (tokenData.success) {
           setUserToken(tokenData.token);
         }

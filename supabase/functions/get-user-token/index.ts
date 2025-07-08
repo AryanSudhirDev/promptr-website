@@ -83,9 +83,15 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (error || !user) {
+      // Check if this is a missing user scenario (user authenticated via Clerk but not in database)
+      // This can happen if webhook failed during payment or user signed up but never paid
+      
+      // For now, return the standard error message
+      // Later we could add automatic user creation here for authenticated users
       return new Response(JSON.stringify({ 
         success: false, 
-        message: 'No access token found for this email. Please complete your purchase first.' 
+        message: 'No access token found for this email. Please complete your purchase first.',
+        suggestion: 'If you recently completed payment, please try again in a few minutes or contact support.'
       }), { 
         status: 404, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
