@@ -40,6 +40,7 @@ const AccountDashboard = () => {
               method: 'POST',
               headers: { 
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({ email }),
@@ -52,6 +53,7 @@ const AccountDashboard = () => {
               method: 'POST',
               headers: { 
                 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({ action: 'get_subscription_status', email }),
@@ -104,6 +106,7 @@ const AccountDashboard = () => {
           method: 'POST',
           headers: { 
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ 
@@ -136,6 +139,7 @@ const AccountDashboard = () => {
           method: 'POST',
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ email: user.emailAddresses[0].emailAddress }),
@@ -181,6 +185,7 @@ const AccountDashboard = () => {
           method: 'POST',
           headers: { 
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ 
