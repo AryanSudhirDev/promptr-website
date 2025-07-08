@@ -86,7 +86,7 @@ const secureHandler = withSecurity(async (req: Request) => {
         error: 'User not found' 
       }), {
         status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...responseHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -96,7 +96,7 @@ const secureHandler = withSecurity(async (req: Request) => {
         error: 'No Stripe customer ID found' 
       }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...responseHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -129,7 +129,7 @@ const secureHandler = withSecurity(async (req: Request) => {
             }
           }), {
             status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...responseHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -161,7 +161,7 @@ const secureHandler = withSecurity(async (req: Request) => {
           subscription: subscriptionData 
         }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...responseHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -180,7 +180,7 @@ const secureHandler = withSecurity(async (req: Request) => {
             url: session.url 
           }), {
             status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...responseHeaders, 'Content-Type': 'application/json' }
           });
         } catch (stripeError) {
           console.log('Customer portal error:', stripeError);
@@ -189,7 +189,7 @@ const secureHandler = withSecurity(async (req: Request) => {
             error: 'Customer not found in Stripe. Please contact support.' 
           }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...responseHeaders, 'Content-Type': 'application/json' }
           });
         }
       }
@@ -214,7 +214,7 @@ const secureHandler = withSecurity(async (req: Request) => {
             error: 'No active or trial subscription found' 
           }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...responseHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -242,7 +242,7 @@ const secureHandler = withSecurity(async (req: Request) => {
             }
           }), {
             status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...responseHeaders, 'Content-Type': 'application/json' }
           });
         } else {
           // For active subscriptions, cancel at period end
@@ -262,7 +262,7 @@ const secureHandler = withSecurity(async (req: Request) => {
             }
           }), {
             status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...responseHeaders, 'Content-Type': 'application/json' }
           });
         }
         } catch (stripeError) {
@@ -272,8 +272,93 @@ const secureHandler = withSecurity(async (req: Request) => {
             error: 'Customer not found in Stripe. Please contact support.' 
           }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...responseHeaders, 'Content-Type': 'application/json' }
           });
+        }
+      }
+
+      case 'delete_account': {
+        try {
+          // First, cancel any active subscription
+          if (user.stripe_customer_id) {
+            const subscriptions = await stripe.subscriptions.list({
+              customer: user.stripe_customer_id,
+              status: 'active',
+              limit: 10,
+            });
+
+            // Cancel all active subscriptions
+            for (const subscription of subscriptions.data) {
+              await stripe.subscriptions.cancel(subscription.id);
+              console.log('Cancelled subscription:', subscription.id);
+            }
+
+            // Also cancel trialing subscriptions
+            const trialingSubscriptions = await stripe.subscriptions.list({
+              customer: user.stripe_customer_id,
+              status: 'trialing',
+              limit: 10,
+            });
+
+            for (const subscription of trialingSubscriptions.data) {
+              await stripe.subscriptions.cancel(subscription.id);
+              console.log('Cancelled trialing subscription:', subscription.id);
+            }
+          }
+
+          // Delete user data from database
+          const { error: deleteError } = await supabase
+            .from('user_access')
+            .delete()
+            .eq('email', email);
+
+          if (deleteError) {
+            console.error('Error deleting user data:', deleteError);
+            return new Response(JSON.stringify({ 
+              success: false, 
+              error: 'Failed to delete user data' 
+            }), {
+              status: 500,
+              headers: { ...responseHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+
+          console.log('Successfully deleted account for:', email);
+          
+          return new Response(JSON.stringify({ 
+            success: true, 
+            message: 'Account successfully deleted. All subscriptions have been cancelled and user data has been removed.' 
+          }), {
+            status: 200,
+            headers: { ...responseHeaders, 'Content-Type': 'application/json' }
+          });
+
+        } catch (stripeError) {
+          console.error('Account deletion error:', stripeError);
+          
+          // Still try to delete from database even if Stripe operations fail
+          try {
+            await supabase
+              .from('user_access')
+              .delete()
+              .eq('email', email);
+            
+            return new Response(JSON.stringify({ 
+              success: true, 
+              message: 'Account deleted. Some subscription cancellation operations may have failed, but user data has been removed.' 
+            }), {
+              status: 200,
+              headers: { ...responseHeaders, 'Content-Type': 'application/json' }
+            });
+          } catch (dbError) {
+            return new Response(JSON.stringify({ 
+              success: false, 
+              error: 'Failed to delete account data' 
+            }), {
+              status: 500,
+              headers: { ...responseHeaders, 'Content-Type': 'application/json' }
+            });
+          }
         }
       }
 
@@ -283,7 +368,7 @@ const secureHandler = withSecurity(async (req: Request) => {
           error: 'Invalid action' 
         }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...responseHeaders, 'Content-Type': 'application/json' }
         });
     }
 
@@ -294,7 +379,7 @@ const secureHandler = withSecurity(async (req: Request) => {
       error: 'Internal server error' 
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...responseHeaders, 'Content-Type': 'application/json' }
     });
   }
 }); 

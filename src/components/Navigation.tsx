@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, Trash2 } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
+import { handleApiError, handleSuccess } from '../utils/errorHandling';
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const { isSignedIn, user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -49,6 +52,50 @@ const Navigation = () => {
   const handleSignOut = () => {
     signOut();
     setShowUserMenu(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user?.emailAddresses?.[0]?.emailAddress) return;
+    
+    setDeleteLoading(true);
+    try {
+      const email = user.emailAddresses[0].emailAddress;
+      
+      // First, cancel any active subscription and delete user data from database
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-subscription`,
+        {
+          method: 'POST',
+          headers: { 
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+          },
+          body: JSON.stringify({ 
+            action: 'delete_account', 
+            email: email 
+          }),
+        }
+      );
+
+      if (response.ok) {
+        handleSuccess('Account data deleted successfully');
+      }
+
+      // Delete the Clerk account
+      await user.delete();
+      
+      // Close modals
+      setShowDeleteModal(false);
+      setShowUserMenu(false);
+      
+      // Redirect to home page with success message
+      handleSuccess('Your account has been permanently deleted');
+      window.location.href = '/';
+      
+    } catch (error) {
+      handleApiError(error, 'Navigation - Delete Account');
+      setDeleteLoading(false);
+    }
   };
 
   const getInitials = (user: any) => {
@@ -132,6 +179,16 @@ const Navigation = () => {
                           <LogOut className="w-4 h-4" />
                           Sign out
                         </button>
+                        <button
+                          onClick={() => {
+                            setShowDeleteModal(true);
+                            setShowUserMenu(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-red-300 hover:bg-red-600/20 hover:text-red-200 transition-colors flex items-center gap-2 border-t border-gray-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete Account
+                        </button>
                       </div>
                     )}
                   </div>
@@ -204,6 +261,15 @@ const Navigation = () => {
                   >
                     Sign out
                   </button>
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-3 py-2 text-red-300 hover:text-red-200 hover:bg-red-600/20 rounded-md transition-colors duration-300"
+                  >
+                    Delete Account
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -219,6 +285,65 @@ const Navigation = () => {
           </div>
         </div>
       </div>
+      
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center px-4">
+          <div className="bg-gray-800/95 backdrop-blur-sm border border-red-500/30 rounded-2xl p-8 max-w-md w-full">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Delete Account</h3>
+                <p className="text-red-200 text-sm">This action cannot be undone</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4 mb-6">
+              <p className="text-gray-300">
+                Are you sure you want to permanently delete your account? This will:
+              </p>
+              <ul className="text-sm text-gray-400 space-y-2 ml-4">
+                <li>• Cancel your subscription and stop all billing</li>
+                <li>• Delete your access token and VS Code extension access</li>
+                <li>• Remove all your account data permanently</li>
+                <li>• Sign you out of all devices</li>
+              </ul>
+              <p className="text-red-300 font-medium">
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleteLoading}
+                className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleteLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete Account
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

@@ -85,7 +85,7 @@ export class InputValidator {
   // Validate subscription action
   static validateAction(action: unknown): ValidationResult {
     const errors: string[] = [];
-    const validActions = ['get_subscription_status', 'create_customer_portal', 'cancel_subscription'];
+    const validActions = ['get_subscription_status', 'create_customer_portal', 'cancel_subscription', 'delete_account'];
     
     if (!action || typeof action !== 'string') {
       errors.push('Action must be a string');

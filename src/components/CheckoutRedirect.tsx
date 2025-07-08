@@ -56,8 +56,12 @@ const CheckoutRedirect = () => {
           throw new Error('No checkout URL received');
         }
       } catch (error) {
+        console.error('Checkout error details:', error);
         handleApiError(error, 'Checkout Redirect');
-        setError('Something went wrong. Please try again.');
+        
+        // Show more specific error for debugging
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        setError(`Debug: ${errorMessage}`);
         setIsLoading(false);
       }
     };

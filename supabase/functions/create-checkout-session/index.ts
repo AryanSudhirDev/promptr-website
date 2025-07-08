@@ -96,9 +96,28 @@ Deno.serve(async (req: Request) => {
     });
   } catch (err) {
     console.error('create-checkout-session error', err);
+    
+    // More detailed error handling for debugging
+    let errorMessage = 'Something went wrong. Please try again.';
+    let errorDetails = '';
+    
+    if (err instanceof Error) {
+      errorDetails = err.message;
+      
+      // Check for specific Stripe errors
+      if (err.message.includes('price')) {
+        errorMessage = 'Invalid price configuration. Please contact support.';
+      } else if (err.message.includes('secret') || err.message.includes('key')) {
+        errorMessage = 'Stripe configuration error. Please contact support.';
+      } else if (err.message.includes('customer')) {
+        errorMessage = 'Customer creation error. Please try again.';
+      }
+    }
+    
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
-      message: 'Something went wrong. Please try again.'
+      message: errorMessage,
+      debug: `Debug: ${errorDetails}` // Temporary for debugging
     }), { 
       status: 500, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
