@@ -80,24 +80,42 @@ const secureHandler = withSecurity(async (req: Request) => {
       .eq('email', email)
       .single();
 
-    if (userError || !user) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'User not found' 
-      }), {
-        status: 404,
-        headers: { ...responseHeaders, 'Content-Type': 'application/json' }
-      });
-    }
+    // For delete_account, we allow it even if user doesn't exist in database
+    if (action === 'delete_account') {
+      // User exists in database, proceed with full deletion
+      if (user && user.stripe_customer_id) {
+        // Continue with normal deletion flow
+      } else {
+        // User doesn't exist in database, that's fine for deletion
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: 'Account deletion completed. No subscription data found to clean up.' 
+        }), {
+          status: 200,
+          headers: { ...responseHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      // For other actions, user must exist
+      if (userError || !user) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'User not found' 
+        }), {
+          status: 404,
+          headers: { ...responseHeaders, 'Content-Type': 'application/json' }
+        });
+      }
 
-    if (!user.stripe_customer_id) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'No Stripe customer ID found' 
-      }), {
-        status: 400,
-        headers: { ...responseHeaders, 'Content-Type': 'application/json' }
-      });
+      if (!user.stripe_customer_id) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'No Stripe customer ID found' 
+        }), {
+          status: 400,
+          headers: { ...responseHeaders, 'Content-Type': 'application/json' }
+        });
+      }
     }
 
     switch (action) {

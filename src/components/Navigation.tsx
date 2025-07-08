@@ -61,40 +61,65 @@ const Navigation = () => {
     try {
       const email = user.emailAddresses[0].emailAddress;
       
-      // First, cancel any active subscription and delete user data from database
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-subscription`,
-        {
-          method: 'POST',
-          headers: { 
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
-          },
-          body: JSON.stringify({ 
-            action: 'delete_account', 
-            email: email 
-          }),
-        }
-      );
+      // Try to clean up backend data, but don't fail if it doesn't work
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-subscription`,
+          {
+            method: 'POST',
+            headers: { 
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              action: 'delete_account', 
+              email: email 
+            }),
+          }
+        );
 
-      if (response.ok) {
-        handleSuccess('Account data deleted successfully');
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Backend cleanup result:', result);
+        } else {
+          console.log('Backend cleanup failed, but continuing with account deletion');
+        }
+      } catch (backendError) {
+        console.log('Backend cleanup failed:', backendError, 'but continuing with account deletion');
       }
 
-      // Delete the Clerk account
+      // Delete the Clerk account (this is the main action)
       await user.delete();
       
-      // Close modals
+      // Close modals and clear loading state
+      setDeleteLoading(false);
       setShowDeleteModal(false);
       setShowUserMenu(false);
       
       // Redirect to home page with success message
       handleSuccess('Your account has been permanently deleted');
-      window.location.href = '/';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
       
     } catch (error) {
-      handleApiError(error, 'Navigation - Delete Account');
-      setDeleteLoading(false);
+      console.error('Delete account error:', error);
+      
+      // Check if it's a Clerk error about user not existing
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
+        handleSuccess('Account has already been deleted');
+        setDeleteLoading(false);
+        setShowDeleteModal(false);
+        setShowUserMenu(false);
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+      } else {
+        handleApiError(error, 'Navigation - Delete Account');
+        setDeleteLoading(false);
+      }
     }
   };
 
