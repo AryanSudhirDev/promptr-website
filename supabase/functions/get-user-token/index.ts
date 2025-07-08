@@ -1,6 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { withSecurity, getResponseHeaders } from '../_shared/security-config.ts';
-import { apiGeneralLimiter } from '../_shared/rate-limiter.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
 
 interface Database {
   public: {
@@ -20,11 +24,40 @@ interface Database {
   };
 }
 
-// Secure handler using the security middleware
-const secureHandler = withSecurity(async (req: Request) => {
-  const responseHeaders = getResponseHeaders(req);
-  
+Deno.serve(async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
+    // Debug endpoint to check database
+    const url = new URL(req.url);
+    if (url.searchParams.has('debug')) {
+      const supabase = createClient<Database>(
+        Deno.env.get('SUPABASE_URL') || '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+      );
+
+      const { data: allUsers, error } = await supabase
+        .from('user_access')
+        .select('email, access_token, stripe_customer_id, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      return new Response(JSON.stringify({
+        success: true,
+        debug: true,
+        users: allUsers,
+        error: error?.message,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Parse request body
     const { email } = await req.json();
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({ 
@@ -32,11 +65,11 @@ const secureHandler = withSecurity(async (req: Request) => {
         message: 'Missing email' 
       }), { 
         status: 400, 
-        headers: responseHeaders
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Initialize Supabase client with service role key
+    // Initialize Supabase client
     const supabase = createClient<Database>(
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
@@ -55,7 +88,7 @@ const secureHandler = withSecurity(async (req: Request) => {
         message: 'No access token found for this email. Please complete your purchase first.' 
       }), { 
         status: 404, 
-        headers: responseHeaders
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -66,7 +99,7 @@ const secureHandler = withSecurity(async (req: Request) => {
       status: user.status
     }), { 
       status: 200, 
-      headers: responseHeaders
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
@@ -76,13 +109,7 @@ const secureHandler = withSecurity(async (req: Request) => {
       message: 'Internal server error' 
     }), { 
       status: 500, 
-      headers: responseHeaders
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
-}, {
-  allowedMethods: ['POST', 'OPTIONS'],
-  rateLimiter: apiGeneralLimiter,
-  requireValidOrigin: false
-});
-
-Deno.serve(secureHandler); 
+}); 

@@ -116,12 +116,21 @@ const secureHandler = withSecurity(async (req: Request) => {
 
         if (existingUser) {
           // Update existing user with Stripe customer ID and set to trialing
+          // Also ensure they have an access token
+          const updateData: any = {
+            stripe_customer_id: customerId,
+            status: 'trialing'
+          };
+
+          // If user doesn't have an access token, generate one
+          if (!existingUser.access_token) {
+            updateData.access_token = crypto.randomUUID();
+            console.log('Generating missing access token for existing user:', email);
+          }
+
           const { error: updateError } = await supabase
             .from('user_access')
-            .update({
-              stripe_customer_id: customerId,
-              status: 'trialing'
-            })
+            .update(updateData)
             .eq('email', email);
 
           if (updateError) {
