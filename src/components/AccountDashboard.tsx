@@ -263,10 +263,10 @@ const AccountDashboard = () => {
 
   return (
     <RequireAuth>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 px-4 py-8" style={{ backgroundColor: '#0B0B0E' }}>
-        {/* Background effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent"></div>
+      <section className="relative min-h-screen flex flex-col px-4 py-20 bg-black">
+        {/* Gradient & grid overlays matching landing page */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-purple-950/20"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
         
         {/* Subscription Management Modal */}
         <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
@@ -381,9 +381,9 @@ const AccountDashboard = () => {
             <p className="text-gray-300">Manage your Promptr Pro subscription and access token</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Account Info */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+            <div className="group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-8 transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-white" />
@@ -415,7 +415,7 @@ const AccountDashboard = () => {
             </div>
 
             {/* Subscription Status */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+            <div className="group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-8 transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                   <Check className="w-5 h-5 text-white" />
@@ -497,7 +497,7 @@ const AccountDashboard = () => {
           </div>
 
           {/* Access Token Section */}
-          <div className="mt-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 relative overflow-hidden">
+          <div className="mt-10 bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-10 relative overflow-hidden group transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
             {/* Animated background */}
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 animate-pulse"></div>
             
@@ -574,7 +574,7 @@ const AccountDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </RequireAuth>
   );
 };
