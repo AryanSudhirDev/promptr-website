@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Check, Copy, Eye, EyeOff, ExternalLink, CreditCard, Calendar, User, X, AlertTriangle } from 'lucide-react';
+import { Check, Copy, Eye, EyeOff, ExternalLink, CreditCard, Calendar, User, X, AlertTriangle, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useUser, useAuth } from '@clerk/clerk-react';
@@ -286,7 +286,7 @@ const AccountDashboard = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-3 h-3 rounded-full ${
                     statusDisplay.color === 'green'
-                      ? 'bg-green-500'
+                      ? 'bg-emerald-400'
                       : statusDisplay.color === 'yellow'
                       ? 'bg-yellow-500'
                       : statusDisplay.color === 'red'
@@ -357,8 +357,8 @@ const AccountDashboard = () => {
 
               {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
               new Date(subscriptionData.trial_end) > new Date() && (
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                  <p className="text-sm text-green-300">
+                <div className="bg-emerald-400/10 border border-emerald-400/20 rounded-lg p-3">
+                  <p className="text-sm text-emerald-300">
                     Your trial was cancelled but you still have access until {formatDate(subscriptionData.trial_end)}. Renew now to continue using Promptr Pro.
                   </p>
                 </div>
@@ -417,7 +417,7 @@ const AccountDashboard = () => {
             {/* Subscription Status */}
             <div className="lg:col-span-6 group relative bg-gradient-to-br from-purple-950/40 via-gray-900/20 to-purple-950/40 backdrop-blur-sm border border-purple-700/30 rounded-3xl p-10 lg:p-12 ring-1 ring-purple-700/40 shadow-xl shadow-purple-900/40 transition-all duration-500 hover:ring-purple-600/50 hover:shadow-purple-800/50">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-lg flex items-center justify-center">
                   <Check className="w-5 h-5 text-white" />
                 </div>
                 <h2 className="text-xl font-bold text-white">Subscription</h2>
@@ -432,7 +432,7 @@ const AccountDashboard = () => {
                   <>
                     <div className="flex items-center gap-2">
                       <div className={`w-3 h-3 rounded-full ${
-                        statusDisplay.color === 'green' ? 'bg-green-500' :
+                        statusDisplay.color === 'green' ? 'bg-emerald-400' :
                         statusDisplay.color === 'yellow' ? 'bg-yellow-500' :
                         statusDisplay.color === 'red' ? 'bg-red-500' : 'bg-gray-500'
                       }`}></div>
@@ -504,7 +504,7 @@ const AccountDashboard = () => {
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <span className="text-lg">🔑</span>
+                  <Key className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">VS Code Access Token</h2>
@@ -535,7 +535,7 @@ const AccountDashboard = () => {
                     onClick={copyToken}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                       copied 
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                        ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' 
                         : 'bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30'
                     }`}
                   >
