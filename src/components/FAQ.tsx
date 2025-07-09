@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import React from 'react';
+import { HelpCircle } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const FAQ = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
   const faqs = [
     {
       question: 'How does Promptr work?',
@@ -35,56 +39,58 @@ const FAQ = () => {
     }
   ];
 
-  const toggleFAQ = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
-    <section className="py-20 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Frequently Asked{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
-              Questions
+    <section id="faq" className="py-32 px-4 bg-black relative">
+      {/* Background pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-950/20 via-black to-black"></div>
+      
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            Questions &{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-purple-300 to-purple-500">
+              Answers
             </span>
           </h2>
-          <p className="text-xl text-gray-300">
-            Everything you need to know about Promptr
+          <p className="text-xl text-gray-400 font-light">
+            Everything you need to know about getting started with Promptr
           </p>
         </div>
 
-        <div className="space-y-4">
+        <Accordion type="single" collapsible className="space-y-6">
           {faqs.map((faq, index) => (
-            <div
+            <AccordionItem
               key={index}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:bg-white/10 hover:border-purple-500/30"
+              value={`item-${index}`}
+              className="group bg-gray-900/30 backdrop-blur-xl border border-gray-800/50 rounded-3xl overflow-hidden transition-all duration-500 hover:bg-gray-800/40 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10 data-[state=open]:bg-gray-800/40 data-[state=open]:border-purple-500/30"
             >
-              <button
-                onClick={() => toggleFAQ(index)}
-                className="w-full px-8 py-6 text-left flex items-center justify-between focus:outline-none"
-              >
-                <span className="text-lg font-semibold text-white pr-4">
+              <AccordionTrigger className="w-full px-8 py-8 text-left flex items-center justify-between hover:no-underline group [&>svg]:hidden">
+                <span className="text-lg md:text-xl font-semibold text-white pr-6 group-hover:text-purple-100 transition-colors duration-300">
                   {faq.question}
                 </span>
-                <div className="flex-shrink-0">
-                  {openIndex === index ? (
-                    <Minus className="w-6 h-6 text-purple-400" />
-                  ) : (
-                    <Plus className="w-6 h-6 text-purple-400" />
-                  )}
+                <div className="flex-shrink-0 w-10 h-10 bg-purple-500/20 border border-purple-500/30 rounded-2xl flex items-center justify-center group-hover:bg-purple-500/30 group-hover:border-purple-400/50 transition-all duration-300 group-data-[state=open]:bg-purple-500/30 group-data-[state=open]:border-purple-400/50">
+                  <div className="w-5 h-5 text-purple-400 group-hover:text-purple-300 transition-all duration-300 relative">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-3 h-0.5 bg-current rounded-full"></div>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center group-data-[state=open]:rotate-90 transition-transform duration-300">
+                      <div className="w-0.5 h-3 bg-current rounded-full"></div>
+                    </div>
+                  </div>
                 </div>
-              </button>
-              <div
-                className={`px-8 pb-6 transition-all duration-300 ${
-                  openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-                }`}
-              >
-                <p className="text-gray-300 leading-relaxed">{faq.answer}</p>
-              </div>
-            </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-8 pb-8 pt-0">
+                <div className="border-t border-gray-800/50 pt-6">
+                  <p className="text-gray-300 leading-relaxed text-lg font-light">
+                    {faq.answer}
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
+
+        {/* Removed bottom CTA */}
       </div>
     </section>
   );

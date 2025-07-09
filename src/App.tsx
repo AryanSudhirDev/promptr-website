@@ -52,19 +52,20 @@ function App() {
     );
   }
 
-
-
   // Handle cancelled page
   if (path === '/cancelled') {
     return (
       <>
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center px-4">
-          <div className="max-w-md w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-center">
+        <div className="min-h-screen bg-black flex items-center justify-center px-4">
+          <div className="max-w-md w-full bg-gray-900/40 backdrop-blur-xl border border-gray-800/50 rounded-3xl p-8 text-center">
+            <div className="w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl">❌</span>
+            </div>
             <h1 className="text-3xl font-bold text-white mb-4">Checkout Cancelled</h1>
-            <p className="text-gray-300 mb-6">No worries! You can try again anytime.</p>
+            <p className="text-gray-400 mb-8 font-light">No worries! You can try again anytime when you're ready.</p>
             <button 
               onClick={() => window.location.href = '/'}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 hover:from-purple-500 hover:to-purple-600"
+              className="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-[1.02] hover:-translate-y-1"
             >
               Return to Home
             </button>
@@ -78,11 +79,10 @@ function App() {
   // Default home page
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900" style={{ backgroundColor: '#0B0B0E' }}>
+      <div className="min-h-screen bg-black">
         <div className="relative">
-          {/* Background effects */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent"></div>
+          {/* Subtle grid pattern background */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
           
           {/* Content */}
           <div className="relative z-10">

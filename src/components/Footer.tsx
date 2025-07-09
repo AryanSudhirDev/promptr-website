@@ -1,63 +1,55 @@
 import React from 'react';
-import { Github, Twitter, Heart } from 'lucide-react';
+import { Github, Twitter, Heart, Mail } from 'lucide-react';
 
 const Footer = () => {
-  return (
-    <footer className="py-12 px-4 border-t border-white/10">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-6 md:mb-0">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-white font-bold text-xl">Promptr</span>
-            </div>
-            <p className="text-gray-400 text-sm">
-              AI super-powers for your code editor
-            </p>
-          </div>
+  const currentYear = new Date().getFullYear();
 
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-4">
-              <a
-                href="https://github.com/promptr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors duration-300"
-                aria-label="GitHub"
-              >
-                <Github className="w-6 h-6" />
-              </a>
-              <a
-                href="https://twitter.com/promptr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors duration-300"
-                aria-label="Twitter"
-              >
-                <Twitter className="w-6 h-6" />
-              </a>
-            </div>
+  const socialLinks = [
+    {
+      name: 'GitHub',
+      href: 'https://github.com/promptr',
+      icon: Github
+    },
+    {
+      name: 'Twitter',
+      href: 'https://twitter.com/promptr',
+      icon: Twitter
+    }
+  ];
+
+  return (
+    <footer className="py-16 px-4 bg-black border-t border-gray-800/50 relative">
+      {/* Background pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-950/20 via-black to-black"></div>
+
+      <div className="max-w-5xl mx-auto relative z-10 text-center">
+        {/* Bottom */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-gray-500 text-sm">© {currentYear} Promptr. All rights reserved.</p>
+          <div className="flex items-center gap-2 text-gray-500 text-sm">
             
-            <div className="flex items-center gap-6 text-sm text-gray-400">
-              <button 
-                onClick={() => alert('Privacy Policy - Coming soon!')}
-                className="hover:text-white transition-colors duration-300"
-              >
-                Privacy Policy
-              </button>
-              <button 
-                onClick={() => alert('Terms of Service - Coming soon!')}
-                className="hover:text-white transition-colors duration-300"
-              >
-                Terms of Service
-              </button>
-            </div>
           </div>
-        </div>
-        
-        <div className="mt-8 pt-8 border-t border-white/10 text-center">
-          <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} Promptr. All rights reserved.
-          </p>
+          <div className="flex items-center gap-4">
+            {socialLinks.map((social, index) => (
+              <a
+                key={index}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-gray-800/50 hover:bg-purple-600/20 border border-gray-700/50 hover:border-purple-500/30 rounded-xl flex items-center justify-center text-gray-400 hover:text-purple-400 transition-all duration-300"
+                aria-label={social.name}
+              >
+                <social.icon className="w-5 h-5" />
+              </a>
+            ))}
+            <a
+              href="mailto:support@usepromptr.com"
+              className="w-10 h-10 bg-gray-800/50 hover:bg-purple-600/20 border border-gray-700/50 hover:border-purple-500/30 rounded-xl flex items-center justify-center text-gray-400 hover:text-purple-400 transition-all duration-300"
+              aria-label="Email"
+            >
+              <Mail className="w-5 h-5" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
