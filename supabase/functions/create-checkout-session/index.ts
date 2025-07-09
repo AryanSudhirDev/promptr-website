@@ -119,7 +119,7 @@ const secureHandler = withSecurity(async (req: Request) => {
       subscription_data: {
         trial_period_days: 14,
       },
-      success_url: `${baseUrl}/?payment=success`,
+      success_url: `${baseUrl}/account`, // changed from /?payment=success to /account
       cancel_url: `${baseUrl}/cancelled`,
     });
 
