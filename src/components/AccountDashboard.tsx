@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Copy, Eye, EyeOff, ExternalLink, CreditCard, Calendar, User, X, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { RequireAuth } from './AuthWrapper';
 import { enhancedFetch, handleApiError, handleSuccess } from '../utils/errorHandling';
@@ -267,124 +269,114 @@ const AccountDashboard = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent"></div>
         
         {/* Subscription Management Modal */}
-        {showSubscriptionModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-            <div className="bg-gray-800/95 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-md w-full">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">
-                  {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end && 
-                   new Date(subscriptionData.trial_end) > new Date() 
-                    ? 'Renew Subscription' 
-                    : 'Manage Subscription'}
-                </h3>
-                <button
-                  onClick={() => setShowSubscriptionModal(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="space-y-6">
-                {/* Current Plan Info */}
-                <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-3 h-3 rounded-full ${
-                      statusDisplay.color === 'green' ? 'bg-green-500' :
-                      statusDisplay.color === 'yellow' ? 'bg-yellow-500' :
-                      statusDisplay.color === 'red' ? 'bg-red-500' : 'bg-gray-500'
-                    }`}></div>
-                    <span className="text-white font-medium">{statusDisplay.text}</span>
-                  </div>
-                  <div className="text-sm text-gray-400">
-                    {/* Check if trial is cancelled */}
-                    {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end && 
-                     new Date(subscriptionData.trial_end) > new Date() ? (
-                      <p>Access ends: {formatDate(subscriptionData.trial_end)}</p>
-                    ) : subscriptionData?.status === 'trialing' && (
-                      <p>{getTrialDaysRemaining()} days remaining in your free trial</p>
-                    )}
-                    {!subscriptionData?.cancel_at_period_end && 
-                     !(subscriptionData?.status === 'inactive' && subscriptionData?.trial_end) && (
-                      <p>Next billing: ${(subscriptionData?.amount || 499) / 100}/month</p>
-                    )}
-                    {subscriptionData?.cancel_at_period_end && (
-                      <p>Access ends: {formatDate(subscriptionData.current_period_end)}</p>
-                    )}
-                  </div>
-                </div>
+        <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
+          <DialogContent className="bg-gray-800/95 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-md w-full">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white">
+                {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+                new Date(subscriptionData.trial_end) > new Date()
+                  ? 'Renew Subscription'
+                  : 'Manage Subscription'}
+              </DialogTitle>
+            </DialogHeader>
 
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                  {/* Show different buttons based on subscription status */}
-                  {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end && 
-                   new Date(subscriptionData.trial_end) > new Date() ? (
-                    // Cancelled trial - show renew option
-                    <button
-                      onClick={handleRenewSubscription}
-                      className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-4 rounded-lg hover:from-green-500 hover:to-green-600 transition-colors"
-                    >
-                      Renew Subscription
-                    </button>
-                  ) : (
-                    // Active subscription - show normal management options
-                    <>
-                      <button
-                        onClick={handleUpdatePaymentMethod}
-                        className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-4 rounded-lg hover:from-purple-500 hover:to-purple-600 transition-colors"
-                      >
-                        Update Payment Method
-                      </button>
-                      
-                      {!subscriptionData?.cancel_at_period_end && 
-                       subscriptionData?.status !== 'inactive' && (
-                        <button
-                          onClick={handleCancelSubscription}
-                          disabled={cancelLoading}
-                          className="w-full bg-red-600/20 border border-red-500/30 text-red-400 py-3 px-4 rounded-lg hover:bg-red-600/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                          <AlertTriangle className="w-4 h-4" />
-                          {cancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
-                        </button>
-                      )}
-                    </>
+            <div className="space-y-6">
+              {/* Current Plan Info */}
+              <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    statusDisplay.color === 'green'
+                      ? 'bg-green-500'
+                      : statusDisplay.color === 'yellow'
+                      ? 'bg-yellow-500'
+                      : statusDisplay.color === 'red'
+                      ? 'bg-red-500'
+                      : 'bg-gray-500'
+                  }`}></div>
+                  <span className="text-white font-medium">{statusDisplay.text}</span>
+                </div>
+                <div className="text-sm text-gray-400">
+                  {/* Check if trial is cancelled */}
+                  {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+                  new Date(subscriptionData.trial_end) > new Date() ? (
+                    <p>Access ends: {formatDate(subscriptionData.trial_end)}</p>
+                  ) : subscriptionData?.status === 'trialing' ? (
+                    <p>{getTrialDaysRemaining()} days remaining in your free trial</p>
+                  ) : null}
+                  {!subscriptionData?.cancel_at_period_end &&
+                  !(subscriptionData?.status === 'inactive' && subscriptionData?.trial_end) && (
+                    <p>Next billing: ${(subscriptionData?.amount || 499) / 100}/month</p>
+                  )}
+                  {subscriptionData?.cancel_at_period_end && (
+                    <p>Access ends: {formatDate(subscriptionData.current_period_end)}</p>
                   )}
                 </div>
+              </div>
 
-                {/* Warning Text - only show for active subscriptions */}
-                {!subscriptionData?.cancel_at_period_end && 
-                 subscriptionData?.status !== 'inactive' && (
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                    <p className="text-sm text-red-300">
-                      You'll continue to have access until the end of your current billing period.
-                    </p>
-                  </div>
-                )}
-                
-                {/* Info text for cancelled trials */}
-                {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end && 
-                 new Date(subscriptionData.trial_end) > new Date() && (
-                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                    <p className="text-sm text-green-300">
-                      Your trial was cancelled but you still have access until {formatDate(subscriptionData.trial_end)}. 
-                      Renew now to continue using Promptr Pro.
-                    </p>
-                  </div>
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+                new Date(subscriptionData.trial_end) > new Date() ? (
+                  <Button
+                    onClick={handleRenewSubscription}
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600"
+                  >
+                    Renew Subscription
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      onClick={handleUpdatePaymentMethod}
+                      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-500 hover:to-purple-600"
+                    >
+                      Update Payment Method
+                    </Button>
+
+                    {!subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'inactive' && (
+                      <Button
+                        onClick={handleCancelSubscription}
+                        disabled={cancelLoading}
+                        variant="destructive"
+                        className="w-full flex items-center justify-center gap-2"
+                      >
+                        <AlertTriangle className="w-4 h-4" />
+                        {cancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
+
+              {!subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'inactive' && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                  <p className="text-sm text-red-300">
+                    You'll continue to have access until the end of your current billing period.
+                  </p>
+                </div>
+              )}
+
+              {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+              new Date(subscriptionData.trial_end) > new Date() && (
+                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                  <p className="text-sm text-green-300">
+                    Your trial was cancelled but you still have access until {formatDate(subscriptionData.trial_end)}. Renew now to continue using Promptr Pro.
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
         
         <div className="relative z-10 max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-purple-400 hover:text-purple-300 mb-4 inline-flex items-center"
+            <Button
+              variant="link"
+              onClick={() => (window.location.href = '/')}
+              className="text-purple-400 hover:text-purple-300 mb-4 inline-flex items-center px-0"
             >
               ← Back to Home
-            </button>
+            </Button>
             <h1 className="text-4xl font-bold text-white mb-2">Account Dashboard</h1>
             <p className="text-gray-300">Manage your Promptr Pro subscription and access token</p>
           </div>
@@ -483,21 +475,22 @@ const AccountDashboard = () => {
                 {/* Show different button text based on status */}
                 {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end && 
                  new Date(subscriptionData.trial_end) > new Date() ? (
-                  <button 
+                  <Button 
                     onClick={handleRenewSubscription}
                     disabled={subscriptionLoading}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-lg hover:from-green-500 hover:to-green-600 transition-colors disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 disabled:opacity-50"
                   >
                     {subscriptionLoading ? 'Loading...' : 'Renew Subscription'}
-                  </button>
+                  </Button>
                 ) : (
-                  <button 
+                  <Button 
                     onClick={() => setShowSubscriptionModal(true)}
                     disabled={subscriptionLoading}
-                    className="w-full bg-white/10 border border-white/20 text-white py-2 px-4 rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
+                    variant="secondary"
+                    className="w-full bg-white/10 border border-white/20 text-white hover:bg-white/20 disabled:opacity-50"
                   >
                     {subscriptionLoading ? 'Loading...' : 'Manage Subscription'}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
