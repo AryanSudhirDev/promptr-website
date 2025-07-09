@@ -367,7 +367,7 @@ const AccountDashboard = () => {
           </DialogContent>
         </Dialog>
         
-        <div className="relative z-10 max-w-4xl mx-auto">
+        <div className="relative z-10 max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <Button
@@ -381,9 +381,9 @@ const AccountDashboard = () => {
             <p className="text-gray-300">Manage your Promptr Pro subscription and access token</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Account Info */}
-            <div className="group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-8 transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
+            <div className="lg:col-span-6 group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-10 lg:p-12 transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-white" />
@@ -415,7 +415,7 @@ const AccountDashboard = () => {
             </div>
 
             {/* Subscription Status */}
-            <div className="group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-8 transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
+            <div className="lg:col-span-6 group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-10 lg:p-12 transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                   <Check className="w-5 h-5 text-white" />
