@@ -367,7 +367,7 @@ const AccountDashboard = () => {
           </DialogContent>
         </Dialog>
         
-        <div className="relative z-10 max-w-7xl mx-auto">
+        <div className="relative z-10 w-full px-4 sm:px-8 lg:px-16 xl:px-24">
           {/* Header */}
           <div className="mb-8">
             <Button
@@ -381,9 +381,9 @@ const AccountDashboard = () => {
             <p className="text-gray-300">Manage your Promptr Pro subscription and access token</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Account Info */}
-            <div className="lg:col-span-6 group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-10 lg:p-12 transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
+            <div className="lg:col-span-6 group relative bg-gradient-to-br from-purple-950/40 via-gray-900/20 to-purple-950/40 backdrop-blur-sm border border-purple-700/30 rounded-3xl p-10 lg:p-12 ring-1 ring-purple-700/40 shadow-xl shadow-purple-900/40 transition-all duration-500 hover:ring-purple-600/50 hover:shadow-purple-800/50">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-white" />
@@ -415,7 +415,7 @@ const AccountDashboard = () => {
             </div>
 
             {/* Subscription Status */}
-            <div className="lg:col-span-6 group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-10 lg:p-12 transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
+            <div className="lg:col-span-6 group relative bg-gradient-to-br from-purple-950/40 via-gray-900/20 to-purple-950/40 backdrop-blur-sm border border-purple-700/30 rounded-3xl p-10 lg:p-12 ring-1 ring-purple-700/40 shadow-xl shadow-purple-900/40 transition-all duration-500 hover:ring-purple-600/50 hover:shadow-purple-800/50">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                   <Check className="w-5 h-5 text-white" />
@@ -497,9 +497,9 @@ const AccountDashboard = () => {
           </div>
 
           {/* Access Token Section */}
-          <div className="mt-10 bg-gray-900/20 backdrop-blur-sm border border-gray-800/50 rounded-3xl p-10 relative overflow-hidden group transition-all duration-500 hover:bg-gray-800/30 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
-            {/* Animated background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 animate-pulse"></div>
+          <div className="mt-12 bg-gradient-to-br from-purple-950/40 via-gray-900/20 to-purple-950/40 backdrop-blur-sm border border-purple-700/30 rounded-3xl p-12 relative overflow-hidden ring-1 ring-purple-700/40 shadow-xl shadow-purple-900/40 group transition-all duration-500 hover:ring-purple-600/50 hover:shadow-purple-800/50">
+            {/* Subtle animated gradient overlay */}
+            <div className="pointer-events-none absolute inset-0 bg-[conic-gradient(from_180deg_at_50%_50%,#7c3aed33_0%,#d946ef22_50%,#7c3aed33_100%)] opacity-20 animate-spin-slow rounded-3xl"></div>
             
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-6">
