@@ -1,7 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@14';
-import { withSecurity, getResponseHeaders } from '../_shared/security-config.ts';
-import { webhooksLimiter } from '../_shared/rate-limiter.ts';
+import { getResponseHeaders } from '../_shared/security-config.ts';
 
 interface Database {
   public: {
@@ -71,9 +70,25 @@ async function handleMissingCustomer(
   return false; // Not found, but not an error
 }
 
-// Secure webhook handler
-const secureHandler = withSecurity(async (req: Request) => {
+// Webhook handler (publicly accessible, secured via signature verification)
+const webhookHandler = async (req: Request) => {
   const responseHeaders = getResponseHeaders(req);
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: responseHeaders,
+    });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: responseHeaders,
+    });
+  }
   
   try {
     // Initialize Stripe with secret key
@@ -416,10 +431,6 @@ const secureHandler = withSecurity(async (req: Request) => {
       headers: responseHeaders 
     });
   }
-}, {
-  allowedMethods: ['POST', 'OPTIONS'],
-  rateLimiter: webhooksLimiter,
-  requireValidOrigin: false // Webhooks come from Stripe, not our domain
-});
+};
 
-Deno.serve(secureHandler); 
+Deno.serve(webhookHandler); 

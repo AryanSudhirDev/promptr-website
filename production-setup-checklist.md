@@ -11,7 +11,7 @@ Add these **critical** variables:
 ```bash
 SITE_URL=https://your-actual-domain.com
 STRIPE_SECRET_KEY=sk_live_your_live_key
-STRIPE_PRICE_ID=price_your_stripe_price_id  
+STRIPE_PRICE_ID=
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 CLERK_DOMAIN=your-domain.clerk.accounts.dev
 ```

@@ -143,10 +143,9 @@ const Pricing = () => {
             
             <div className="mb-8">
               <div className="flex items-end justify-center gap-2">
-                <span className="text-6xl font-bold text-white">$4.99</span>
+                <span className="text-6xl font-bold text-white">$6.99</span>
                 <div className="flex flex-col items-start pb-2">
                   <span className="text-gray-400 text-lg font-medium">/month</span>
-                  <span className="text-purple-400 text-sm">14-day free trial</span>
                 </div>
               </div>
             </div>
