@@ -186,6 +186,13 @@ const secureHandler = withSecurity(async (req: Request) => {
           }
         }
 
+        // If we don't have trial_end from Stripe but user is trialing, calculate from database created_at
+        if (!subscriptionData.trial_end && finalUser.status === 'trialing' && finalUser.created_at) {
+          const createdAt = new Date(finalUser.created_at);
+          const trialEnd = new Date(createdAt.getTime() + (14 * 24 * 60 * 60 * 1000)); // 14 days in milliseconds
+          subscriptionData.trial_end = trialEnd.toISOString();
+        }
+
         return new Response(JSON.stringify({ 
           success: true, 
           subscription: subscriptionData 
