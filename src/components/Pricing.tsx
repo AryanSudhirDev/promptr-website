@@ -143,7 +143,8 @@ const Pricing = () => {
             
             <div className="mb-8">
               <div className="flex items-end justify-center gap-2">
-                <span className="text-6xl font-bold text-white">$6.99</span>
+                <span className="text-2xl font-semibold text-gray-400 line-through">$10.99</span>
+                <span className="text-6xl font-bold text-white">$5.99</span>
                 <div className="flex flex-col items-start pb-2">
                   <span className="text-gray-400 text-lg font-medium">/month</span>
                 </div>
