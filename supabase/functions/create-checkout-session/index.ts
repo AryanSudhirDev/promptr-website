@@ -93,15 +93,16 @@ const secureHandler = withSecurity(async (req: Request) => {
     }
 
     const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-    // const stripePriceId = Deno.env.get('STRIPE_PRICE_ID'); // Remove this line
+    const stripePriceId = Deno.env.get('STRIPE_PRICE_ID');
     const siteUrl = Deno.env.get('SITE_URL');
 
     if (!stripeSecretKey) {
       throw new Error('STRIPE_SECRET_KEY environment variable is missing');
     }
 
-    // Hardcode the price ID as requested
-    const stripePriceId = 'price_1RjwjpE9moYSKNWTaTfGxXt5';
+    if (!stripePriceId) {
+      throw new Error('STRIPE_PRICE_ID environment variable is missing');
+    }
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',

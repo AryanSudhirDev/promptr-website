@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Copy, Eye, EyeOff, ExternalLink, CreditCard, Calendar, User, X, AlertTriangle, Key } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { useUser } from '@clerk/clerk-react';
 import { RequireAuth } from './AuthWrapper';
 import { enhancedFetch, handleApiError, handleSuccess } from '../utils/errorHandling';
 
@@ -203,12 +203,11 @@ const AccountDashboard = () => {
 
       const data = await response.json();
       if (data.success) {
-        handleSuccess(data.message || 'Subscription cancelled successfully');
-        setShowSubscriptionModal(false);
+        handleSuccess('Subscription cancelled successfully. You\'ll continue to have access until the end of your current billing period.');
         // Refresh subscription data
         window.location.reload();
       } else {
-        handleApiError(new Error(data.error || 'Unknown error occurred'), 'Account - Cancel Subscription');
+        handleApiError(new Error(data.error || 'Failed to cancel subscription'), 'Account - Cancel Subscription');
       }
     } catch (error) {
       // Error already handled by enhancedFetch
@@ -219,22 +218,26 @@ const AccountDashboard = () => {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Unknown';
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
   };
 
   const getTrialDaysRemaining = () => {
     if (!subscriptionData?.trial_end) return 0;
     const trialEnd = new Date(subscriptionData.trial_end);
     const now = new Date();
-    const diff = trialEnd.getTime() - now.getTime();
-    const days = Math.ceil(diff / (1000 * 3600 * 24));
-    return Math.max(0, days);
+    const diffTime = trialEnd.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
   };
 
   const getStatusDisplay = () => {
     if (!subscriptionData) return { text: 'Loading...', color: 'gray' };
     
-    // Check if trial is cancelled (inactive status but still has trial_end in the future)
+    // Check if trial is cancelled but still active
     if (subscriptionData.status === 'inactive' && subscriptionData.trial_end) {
       const trialEnd = new Date(subscriptionData.trial_end);
       const now = new Date();
@@ -263,110 +266,7 @@ const AccountDashboard = () => {
 
   return (
     <RequireAuth>
-      <section className="relative min-h-screen flex flex-col px-4 py-20 bg-black">
-        {/* Gradient & grid overlays matching landing page */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-purple-950/20"></div>
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
-        
-        {/* Subscription Management Modal */}
-        <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
-          <DialogContent className="bg-gray-800/95 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-md w-full">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-white">
-                {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
-                new Date(subscriptionData.trial_end) > new Date()
-                  ? 'Renew Subscription'
-                  : 'Manage Subscription'}
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              {/* Current Plan Info */}
-              <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    statusDisplay.color === 'green'
-                      ? 'bg-emerald-400'
-                      : statusDisplay.color === 'yellow'
-                      ? 'bg-yellow-500'
-                      : statusDisplay.color === 'red'
-                      ? 'bg-red-500'
-                      : 'bg-gray-500'
-                  }`}></div>
-                  <span className="text-white font-medium">{statusDisplay.text}</span>
-                </div>
-                <div className="text-sm text-gray-400">
-                  {/* Check if trial is cancelled */}
-                  {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
-                  new Date(subscriptionData.trial_end) > new Date() ? (
-                    <p>Access ends: {formatDate(subscriptionData.trial_end)}</p>
-                  ) : subscriptionData?.status === 'trialing' ? (
-                    <p>{getTrialDaysRemaining()} days remaining in your free trial</p>
-                  ) : null}
-                  {!subscriptionData?.cancel_at_period_end &&
-                  !(subscriptionData?.status === 'inactive' && subscriptionData?.trial_end) && (
-                    <p>Next billing: ${(subscriptionData?.amount || 499) / 100}/month</p>
-                  )}
-                  {subscriptionData?.cancel_at_period_end && (
-                    <p>Access ends: {formatDate(subscriptionData.current_period_end)}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
-                new Date(subscriptionData.trial_end) > new Date() ? (
-                  <Button
-                    onClick={handleRenewSubscription}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600"
-                  >
-                    Renew Subscription
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      onClick={handleUpdatePaymentMethod}
-                      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-500 hover:to-purple-600"
-                    >
-                      Update Payment Method
-                    </Button>
-
-                    {!subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'inactive' && (
-                      <Button
-                        onClick={handleCancelSubscription}
-                        disabled={cancelLoading}
-                        variant="destructive"
-                        className="w-full flex items-center justify-center gap-2"
-                      >
-                        <AlertTriangle className="w-4 h-4" />
-                        {cancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
-                      </Button>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {!subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'inactive' && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                  <p className="text-sm text-red-300">
-                    You'll continue to have access until the end of your current billing period.
-                  </p>
-                </div>
-              )}
-
-              {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
-              new Date(subscriptionData.trial_end) > new Date() && (
-                <div className="bg-emerald-400/10 border border-emerald-400/20 rounded-lg p-3">
-                  <p className="text-sm text-emerald-300">
-                    Your trial was cancelled but you still have access until {formatDate(subscriptionData.trial_end)}. Renew now to continue using Promptr Pro.
-                  </p>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-        
+      <section className="relative min-h-screen flex flex-col px-4 py-20">
         <div className="relative z-10 w-full px-4 sm:px-8 lg:px-16 xl:px-24">
           {/* Header */}
           <div className="mb-8">
@@ -383,7 +283,7 @@ const AccountDashboard = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Account Info */}
-            <div className="lg:col-span-6 group relative bg-gradient-to-br from-purple-950/40 via-gray-900/20 to-purple-950/40 backdrop-blur-sm border border-purple-700/30 rounded-3xl p-10 lg:p-12 ring-1 ring-purple-700/40 shadow-xl shadow-purple-900/40 transition-all duration-500 hover:ring-purple-600/50 hover:shadow-purple-800/50">
+            <div className="lg:col-span-6 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-white" />
@@ -415,7 +315,7 @@ const AccountDashboard = () => {
             </div>
 
             {/* Subscription Status */}
-            <div className="lg:col-span-6 group relative bg-gradient-to-br from-purple-950/40 via-gray-900/20 to-purple-950/40 backdrop-blur-sm border border-purple-700/30 rounded-3xl p-10 lg:p-12 ring-1 ring-purple-700/40 shadow-xl shadow-purple-900/40 transition-all duration-500 hover:ring-purple-600/50 hover:shadow-purple-800/50">
+            <div className="lg:col-span-6 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-lg flex items-center justify-center">
                   <Check className="w-5 h-5 text-white" />
@@ -457,9 +357,14 @@ const AccountDashboard = () => {
                        !(subscriptionData?.status === 'inactive' && subscriptionData?.trial_end) && (
                         <div className="flex items-center justify-between">
                           <span className="text-gray-400 text-sm">
-                            {subscriptionData?.status === 'trialing' ? 'Price after trial' : 'Monthly cost'}
+                            {subscriptionData?.status === 'trialing' ? 'Next billing' : 'Next billing'}
                           </span>
-                          <span className="text-white text-sm">${(subscriptionData?.amount || 499) / 100}/month</span>
+                          <span className="text-white text-sm">
+                            {subscriptionData?.status === 'trialing' 
+                              ? formatDate(subscriptionData.current_period_end)
+                              : `$${(subscriptionData?.amount || 499) / 100}/month`
+                            }
+                          </span>
                         </div>
                       )}
                       {subscriptionData?.cancel_at_period_end && (
@@ -469,111 +374,194 @@ const AccountDashboard = () => {
                         </div>
                       )}
                     </div>
-                  </>
-                )}
 
-                {/* Show different button text based on status */}
-                {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end && 
-                 new Date(subscriptionData.trial_end) > new Date() ? (
-                  <Button 
-                    onClick={handleRenewSubscription}
-                    disabled={subscriptionLoading}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 disabled:opacity-50"
-                  >
-                    {subscriptionLoading ? 'Loading...' : 'Renew Subscription'}
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => setShowSubscriptionModal(true)}
-                    disabled={subscriptionLoading}
-                    variant="secondary"
-                    className="w-full bg-white/10 border border-white/20 text-white hover:bg-white/20 disabled:opacity-50"
-                  >
-                    {subscriptionLoading ? 'Loading...' : 'Manage Subscription'}
-                  </Button>
+                    {/* Action Buttons */}
+                    <div className="pt-4 space-y-3">
+                      {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+                      new Date(subscriptionData.trial_end) > new Date() ? (
+                        <Button
+                          onClick={handleRenewSubscription}
+                          className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 transition-colors duration-200"
+                        >
+                          Renew Subscription
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            onClick={() => setShowSubscriptionModal(true)}
+                            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-500 hover:to-purple-600 transition-colors duration-200"
+                          >
+                            Manage Subscription
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Access Token Section */}
-          <div className="mt-12 bg-gradient-to-br from-purple-950/40 via-gray-900/20 to-purple-950/40 backdrop-blur-sm border border-purple-700/30 rounded-3xl p-12 relative overflow-hidden ring-1 ring-purple-700/40 shadow-xl shadow-purple-900/40 group transition-all duration-500 hover:ring-purple-600/50 hover:shadow-purple-800/50">
-            {/* Subtle animated gradient overlay */}
-            <div className="pointer-events-none absolute inset-0 bg-[conic-gradient(from_180deg_at_50%_50%,#7c3aed33_0%,#d946ef22_50%,#7c3aed33_100%)] opacity-20 animate-spin-slow rounded-3xl"></div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+            {/* Access Token */}
+            <div className="lg:col-span-12 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
                   <Key className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">VS Code Access Token</h2>
-                  <p className="text-purple-200 text-sm">Use this token to authenticate your extension</p>
-                </div>
+                <h2 className="text-xl font-bold text-white">Access Token</h2>
               </div>
-
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full"></div>
-                </div>
-              ) : userToken ? (
-                <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-300 font-medium text-sm">Your Token:</span>
-                    <button
-                      onClick={() => setShowToken(!showToken)}
-                      className="flex items-center gap-1 text-purple-400 hover:text-purple-300 text-sm"
-                    >
-                      {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      {showToken ? 'Hide' : 'Show'}
-                    </button>
+              
+              <div className="space-y-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
                   </div>
-                  <div className="font-mono text-sm text-white bg-black/30 p-3 rounded-lg break-all border border-white/10 mb-3">
-                    {showToken ? userToken : '•'.repeat(40)}
-                  </div>
-                  <button
-                    onClick={copyToken}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                      copied 
-                        ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' 
-                        : 'bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30'
-                    }`}
-                  >
-                    <Copy className="w-4 h-4" />
-                    {copied ? 'Copied!' : 'Copy Token'}
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-400">No access token found. Please contact support.</p>
-                </div>
-              )}
-
-              {/* Setup Instructions */}
-              <div className="mt-6 bg-white/5 border border-white/10 rounded-lg p-4">
-                <h3 className="text-white font-semibold mb-3">Setup Instructions:</h3>
-                <div className="space-y-2 text-sm text-gray-300">
-                  <div className="flex items-start gap-2">
-                    <span className="text-purple-400 font-bold">1.</span>
-                    <span>Install the Promptr VS Code extension</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-purple-400 font-bold">2.</span>
-                    <span>Copy your access token above</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-purple-400 font-bold">3.</span>
-                    <span>Open VS Code settings and paste your token in Promptr settings</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-purple-400 font-bold">4.</span>
-                    <span>Start using Promptr with ⌘⇧G (or Ctrl+Shift+G)</span>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <p className="text-gray-300 text-sm">
+                      Use this token to authenticate with the Promptr VS Code extension. Keep it secure and don't share it with others.
+                    </p>
+                    
+                    <div className="relative">
+                      <div className="flex items-center gap-2 p-4 bg-gray-800/50 border border-gray-700/50 rounded-xl">
+                        <div className="flex-1 font-mono text-sm">
+                          {showToken ? userToken : '•'.repeat(userToken.length || 20)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowToken(!showToken)}
+                            className="text-gray-400 hover:text-white"
+                          >
+                            {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={copyToken}
+                            className="text-gray-400 hover:text-white"
+                          >
+                            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4" />
+                        <span>Install the VS Code extension</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" />
+                        <span>Token automatically syncs with your subscription</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
+
+        {/* Subscription Management Modal */}
+        <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
+          <DialogContent className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8 max-w-md w-full">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white">
+                {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+                new Date(subscriptionData.trial_end) > new Date()
+                  ? 'Renew Subscription'
+                  : 'Manage Subscription'}
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Current Plan Info */}
+              <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    statusDisplay.color === 'green'
+                      ? 'bg-emerald-400'
+                      : statusDisplay.color === 'yellow'
+                      ? 'bg-yellow-500'
+                      : statusDisplay.color === 'red'
+                      ? 'bg-red-500'
+                      : 'bg-gray-500'
+                  }`}></div>
+                  <span className="text-white font-medium">{statusDisplay.text}</span>
+                </div>
+                <div className="text-sm text-gray-400">
+                  {/* Check if trial is cancelled */}
+                  {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+                  new Date(subscriptionData.trial_end) > new Date() ? (
+                    <p>Access ends: {formatDate(subscriptionData.trial_end)}</p>
+                  ) : subscriptionData?.status === 'trialing' ? (
+                    <p>{getTrialDaysRemaining()} days remaining in your free trial</p>
+                  ) : null}
+                  {!subscriptionData?.cancel_at_period_end &&
+                  !(subscriptionData?.status === 'inactive' && subscriptionData?.trial_end) && (
+                    <p>Next billing: ${(subscriptionData?.amount || 499) / 100}/month</p>
+                  )}
+                  {subscriptionData?.cancel_at_period_end && (
+                    <p>Access ends: {formatDate(subscriptionData.current_period_end)}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+                new Date(subscriptionData.trial_end) > new Date() ? (
+                  <Button
+                    onClick={handleRenewSubscription}
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 transition-colors duration-200"
+                  >
+                    Renew Subscription
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      onClick={handleUpdatePaymentMethod}
+                      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-500 hover:to-purple-600 transition-colors duration-200"
+                    >
+                      Update Payment Method
+                    </Button>
+
+                    {!subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'inactive' && (
+                      <Button
+                        onClick={handleCancelSubscription}
+                        disabled={cancelLoading}
+                        variant="destructive"
+                        className="w-full flex items-center justify-center gap-2"
+                      >
+                        <AlertTriangle className="w-4 h-4" />
+                        {cancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {!subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'inactive' && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                  <p className="text-sm text-red-300">
+                    You'll continue to have access until the end of your current billing period.
+                  </p>
+                </div>
+              )}
+
+              {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
+              new Date(subscriptionData.trial_end) > new Date() && (
+                <div className="bg-emerald-400/10 border border-emerald-400/20 rounded-lg p-3">
+                  <p className="text-sm text-emerald-300">
+                    Your trial was cancelled but you still have access until {formatDate(subscriptionData.trial_end)}. Renew now to continue using Promptr Pro.
+                  </p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </section>
     </RequireAuth>
   );

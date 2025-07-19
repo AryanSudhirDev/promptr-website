@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { enhancedFetch, handleApiError } from '../utils/errorHandling';
+import { handleApiError } from '../utils/errorHandling';
 
 const CheckoutRedirect = () => {
   const [isLoading, setIsLoading] = useState(true);

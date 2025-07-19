@@ -7,34 +7,34 @@ const Testimonials = () => {
 
   const testimonials = [
     {
-      name: 'Alex Chen',
-      role: 'Frontend Dev at fintech startup',
-      content: 'I\'ve been using this for 3 months now. The context feature is incredibly useful when working with our React/TypeScript codebase. Still requires some fine-tuning but significantly better than my previous copy-paste workflow with ChatGPT.',
-      avatar: 'https://images.pexels.com/photos/3785077/pexels-photo-3785077.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      name: 'Arjun Sharma',
+      role: 'Senior Frontend Engineer at FinFlow',
+      content: 'I used to spend 30 minutes writing PR descriptions and explaining code changes to my team. Now I just select the code, hit ⌘⇧G, and Promptr generates a clear explanation in seconds. The custom context feature understands our React patterns perfectly.',
+      avatar: null
     },
     {
-      name: 'Marcus Rodriguez',
-      role: 'Backend Engineer, 8 years exp',
-      content: 'I was initially skeptical, but the prompt refinements genuinely help. Particularly effective when debugging complex SQL queries or explaining legacy code. The temperature slider could be more intuitive though.',
-      avatar: 'https://images.pexels.com/photos/3778966/pexels-photo-3778966.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      name: 'Priya Mehta',
+      role: 'Backend Engineer at CloudSync',
+      content: 'Debugging complex SQL queries was a nightmare. I\'d copy-paste between ChatGPT and my editor constantly. Promptr stays in VS Code, so I can refine my debugging prompts without losing context. The creativity slider helps me get more precise answers.',
+      avatar: null
     },
     {
-      name: 'Sarah Kim',
-      role: 'Full-stack @ YC startup',
-      content: 'Real game changer for code reviews. I use it to generate better PR descriptions and explain complex algorithms to junior developers. The ⌘⇧G shortcut has become second nature. No more switching to ChatGPT in another tab.',
-      avatar: 'https://images.pexels.com/photos/3756679/pexels-photo-3756679.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      name: 'Rahul Verma',
+      role: 'Full-stack Developer at DataViz',
+      content: 'Code reviews were taking forever because I couldn\'t explain complex algorithms clearly. Now I select the code, use Promptr to generate explanations, and my team actually understands what I\'m doing. Saves me 2-3 hours per week on reviews.',
+      avatar: null
     },
     {
-      name: 'Jake Thompson',
-      role: 'DevOps/Platform Engineer',
-      content: 'Extremely useful for Kubernetes YAML debugging and generating Terraform explanations. The offline functionality is essential for our security-conscious team. Still discovering all the features it offers.',
-      avatar: 'https://images.pexels.com/photos/3785077/pexels-photo-3785077.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      name: 'Anjali Desai',
+      role: 'DevOps Engineer at SecureStack',
+      content: 'I was constantly switching between VS Code and ChatGPT to debug Kubernetes YAML files. Promptr understands infrastructure code and generates better debugging prompts. I can explain complex configurations to my team in minutes instead of hours.',
+      avatar: null
     },
     {
-      name: 'Priya Patel',
-      role: 'Senior Frontend @ Big Tech',
-      content: 'Primarily use it for refactoring legacy jQuery into modern React. The context awareness is surprisingly accurate - it understands our component patterns well. Saves approximately 30 minutes daily, which adds up significantly.',
-      avatar: 'https://images.pexels.com/photos/3756679/pexels-photo-3756679.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      name: 'Vikram Singh',
+      role: 'Tech Lead at CodeCraft',
+      content: 'Our team was struggling with inconsistent code documentation. I set up custom context for our coding standards, and now everyone uses Promptr to generate consistent documentation. It\'s reduced our onboarding time by 40%.',
+      avatar: null
     }
   ];
 
@@ -56,12 +56,12 @@ const Testimonials = () => {
   };
 
   return (
-    <section className="py-20 px-4">
-      <div className="max-w-4xl mx-auto">
+    <section className="relative py-20 px-4 overflow-hidden">
+      <div className="relative z-10 max-w-4xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Loved by{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
               developers
             </span>
           </h2>
@@ -71,33 +71,28 @@ const Testimonials = () => {
         </div>
 
         <div
-          className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 md:p-12"
+          className="relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8 md:p-12"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="text-center">
+          <div className="text-center relative z-10">
             <div className="mb-8">
-              <img
-                src={testimonials[currentIndex].avatar}
-                alt={testimonials[currentIndex].name}
-                className="w-16 h-16 rounded-full mx-auto mb-4 object-cover"
-              />
               <p className="text-lg md:text-xl text-gray-300 leading-relaxed mb-6 min-h-[80px] flex items-center justify-center">
                 "{testimonials[currentIndex].content}"
               </p>
               <div>
                 <p className="text-white font-semibold">{testimonials[currentIndex].name}</p>
-                <p className="text-purple-400">{testimonials[currentIndex].role}</p>
+                <p className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">{testimonials[currentIndex].role}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-center items-center gap-4 mt-8">
+          <div className="flex justify-center items-center gap-4 mt-8 relative z-10">
             <button
               onClick={prevTestimonial}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300"
+              className="p-2 rounded-full bg-gray-800/50 hover:bg-blue-600/20 border border-gray-700/50 hover:border-blue-500/30 transition-colors duration-200"
             >
-              <ChevronLeft className="w-5 h-5 text-white" />
+              <ChevronLeft className="w-5 h-5 text-gray-300 hover:text-blue-400" />
             </button>
             
             <div className="flex gap-2">
@@ -105,8 +100,8 @@ const Testimonials = () => {
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentIndex ? 'bg-purple-500' : 'bg-white/30'
+                  className={`w-3 h-3 rounded-full transition-colors duration-200 ${
+                    index === currentIndex ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-600/50'
                   }`}
                 />
               ))}
@@ -114,9 +109,9 @@ const Testimonials = () => {
 
             <button
               onClick={nextTestimonial}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300"
+              className="p-2 rounded-full bg-gray-800/50 hover:bg-blue-600/20 border border-gray-700/50 hover:border-blue-500/30 transition-colors duration-200"
             >
-              <ChevronRight className="w-5 h-5 text-white" />
+              <ChevronRight className="w-5 h-5 text-gray-300 hover:text-blue-400" />
             </button>
           </div>
         </div>

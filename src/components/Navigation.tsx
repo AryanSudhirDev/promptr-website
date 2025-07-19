@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from './ui/button';
 import { Menu, X, User, LogOut, Trash2 } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import {
@@ -8,37 +9,44 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from './ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from './ui/dialog';
 
 const Navigation = () => {
+  const { isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const { isSignedIn, user, isLoaded } = useUser();
-  const { signOut } = useClerk();
-  const [deleteMessage, setDeleteMessage] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState('');
 
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navItems = [
     { name: 'Features', href: '#features' },
+    { name: 'Testimonials', href: '#testimonials' },
     { name: 'Pricing', href: '#pricing' },
     { name: 'FAQ', href: '#faq' }
   ];
@@ -100,9 +108,9 @@ const Navigation = () => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${
       isScrolled 
-        ? 'bg-black/90 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl shadow-black/20' 
+        ? 'bg-black/95 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl shadow-black/20' 
         : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-4">
@@ -124,7 +132,7 @@ const Navigation = () => {
                 <button
                   key={item.name}
                   onClick={() => scrollToSection(item.href)}
-                  className="text-gray-400 hover:text-white transition-colors duration-300 font-medium relative group"
+                  className="text-white hover:text-purple-400 transition-colors duration-300 font-medium relative group"
                 >
                   {item.name}
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-500 transition-all duration-300 group-hover:w-full"></span>
@@ -141,7 +149,7 @@ const Navigation = () => {
                   <Button
                     variant="ghost"
                     onClick={() => window.location.href = '/account'}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white hover:bg-gray-800/50 px-4 py-2 rounded-xl transition-all duration-300 border border-transparent hover:border-gray-700/50"
+                    className="flex items-center gap-2 text-white hover:text-purple-400 hover:bg-gray-800/50 px-4 py-2 rounded-xl transition-all duration-300 border border-transparent hover:border-gray-700/50"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -186,13 +194,13 @@ const Navigation = () => {
                 </>
               ) : (
                 <>
-                  <Button
-                    variant="ghost"
+                  <button
                     onClick={() => window.location.href = '/sign-in'}
-                    className="text-gray-400 hover:text-white hover:bg-gray-800/50 px-6 py-2 rounded-xl transition-all duration-300 border border-transparent hover:border-gray-700/50 font-medium"
+                    className="text-white hover:text-purple-400 transition-colors duration-300 font-medium relative group ml-30"
                   >
                     Sign in
-                  </Button>
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-500 transition-all duration-300 group-hover:w-full"></span>
+                  </button>
                 </>
               )}
             </div>
@@ -300,26 +308,18 @@ const Navigation = () => {
             
             <div className="flex gap-3">
               <Button
-                variant="outline"
-                onClick={() => setShowDeleteModal(false)}
-                disabled={isDeleting}
-                className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800/50"
-              >
-                Cancel
-              </Button>
-              <Button
                 onClick={handleDeleteAccount}
                 disabled={isDeleting}
-                className="flex-1 bg-red-600 hover:bg-red-500 text-white"
+                className="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-red-500/25 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isDeleting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                    Deleting...
-                  </>
-                ) : (
-                  'Delete Forever'
-                )}
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </Button>
+              <Button
+                onClick={() => setShowDeleteModal(false)}
+                variant="outline"
+                className="flex-1 border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800/50 font-semibold py-3 px-6 rounded-xl transition-all duration-300"
+              >
+                Cancel
               </Button>
             </div>
           </div>

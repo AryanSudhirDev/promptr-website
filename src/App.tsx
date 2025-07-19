@@ -2,6 +2,8 @@ import React from 'react';
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
 import Features from './components/Features';
+import Testimonials from './components/Testimonials';
+
 import Pricing from './components/Pricing';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
@@ -79,27 +81,30 @@ function App() {
   // Default home page
   return (
     <>
-      <div className="min-h-screen bg-black">
-        <div className="relative">
-          {/* Subtle grid pattern background */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
-          
-          {/* Content */}
-          <div className="relative z-10">
-            <Navigation />
-            <Hero />
-            <div id="features">
-              <Features />
-            </div>
-            <div id="pricing">
-              <Pricing />
-            </div>
-            <div id="faq">
-              <FAQ />
-            </div>
-            <Footer />
-          </div>
+      {/* Unified background that covers the entire page */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"></div>
+      <div className="fixed inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.2),transparent_50%)]"></div>
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.2),transparent_50%)]"></div>
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+      
+      {/* Content */}
+      <div className="relative z-10">
+        <Navigation />
+        <Hero />
+        <div id="features">
+          <Features />
         </div>
+        <div id="testimonials">
+          <Testimonials />
+        </div>
+        <div id="pricing">
+          <Pricing />
+        </div>
+        <div id="faq">
+          <FAQ />
+        </div>
+        <Footer />
       </div>
       <NotificationSystem />
     </>
