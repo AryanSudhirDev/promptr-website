@@ -266,14 +266,21 @@ const AccountDashboard = () => {
 
   return (
     <RequireAuth>
+      {/* Unified background that covers the entire page */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"></div>
+      <div className="fixed inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.2),transparent_50%)]"></div>
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.2),transparent_50%)]"></div>
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+      
       <section className="relative min-h-screen flex flex-col px-4 py-20">
         <div className="relative z-10 w-full px-4 sm:px-8 lg:px-16 xl:px-24">
           {/* Header */}
           <div className="mb-8">
             <Button
-              variant="link"
+              variant="ghost"
               onClick={() => (window.location.href = '/')}
-              className="text-purple-400 hover:text-purple-300 mb-4 inline-flex items-center px-0"
+              className="text-purple-400 hover:text-purple-300 mb-4 inline-flex items-center px-0 hover:bg-purple-500/10 rounded-xl transition-all duration-200"
             >
               ← Back to Home
             </Button>
@@ -283,7 +290,7 @@ const AccountDashboard = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Account Info */}
-            <div className="lg:col-span-6 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20">
+            <div className="lg:col-span-6 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20 hover:border-purple-500/30 transition-all duration-300 hover:shadow-purple-500/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-white" />
@@ -315,7 +322,7 @@ const AccountDashboard = () => {
             </div>
 
             {/* Subscription Status */}
-            <div className="lg:col-span-6 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20">
+            <div className="lg:col-span-6 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-lg flex items-center justify-center">
                   <Check className="w-5 h-5 text-white" />
@@ -381,7 +388,7 @@ const AccountDashboard = () => {
                       new Date(subscriptionData.trial_end) > new Date() ? (
                         <Button
                           onClick={handleRenewSubscription}
-                          className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 transition-colors duration-200"
+                          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transform hover:scale-[1.02]"
                         >
                           Renew Subscription
                         </Button>
@@ -389,7 +396,7 @@ const AccountDashboard = () => {
                         <>
                           <Button
                             onClick={() => setShowSubscriptionModal(true)}
-                            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-500 hover:to-purple-600 transition-colors duration-200"
+                            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transform hover:scale-[1.02]"
                           >
                             Manage Subscription
                           </Button>
@@ -402,7 +409,7 @@ const AccountDashboard = () => {
             </div>
 
             {/* Access Token */}
-            <div className="lg:col-span-12 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20">
+            <div className="lg:col-span-12 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20 hover:border-blue-500/30 transition-all duration-300 hover:shadow-blue-500/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
                   <Key className="w-5 h-5 text-white" />
@@ -422,7 +429,7 @@ const AccountDashboard = () => {
                     </p>
                     
                     <div className="relative">
-                      <div className="flex items-center gap-2 p-4 bg-gray-800/50 border border-gray-700/50 rounded-xl">
+                      <div className="flex items-center gap-2 p-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl backdrop-blur-sm">
                         <div className="flex-1 font-mono text-sm">
                           {showToken ? userToken : '•'.repeat(userToken.length || 20)}
                         </div>
@@ -431,7 +438,7 @@ const AccountDashboard = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowToken(!showToken)}
-                            className="text-gray-400 hover:text-white"
+                            className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-xl transition-all duration-200"
                           >
                             {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </Button>
@@ -439,7 +446,7 @@ const AccountDashboard = () => {
                             variant="ghost"
                             size="sm"
                             onClick={copyToken}
-                            className="text-gray-400 hover:text-white"
+                            className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-xl transition-all duration-200"
                           >
                             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                           </Button>
