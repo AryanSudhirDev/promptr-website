@@ -44,16 +44,12 @@ const Hero = () => {
           {/* Right Column - Demo */}
           <div className="relative lg:-ml-20 pr-8 lg:pr-12">
             <div className="rounded-3xl overflow-hidden">
-              <video 
-                src="/promptr-demo.mov" 
+              <img 
+                src="/promptr-demo.gif" 
+                alt="Promptr VS Code extension demo showing prompt selection and AI refinement"
                 className="w-full h-auto object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls
-                preload="metadata"
-                title="Promptr VS Code extension demo showing prompt selection and AI refinement"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             

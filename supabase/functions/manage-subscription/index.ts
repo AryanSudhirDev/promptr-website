@@ -146,7 +146,7 @@ const secureHandler = withSecurity(async (req: Request) => {
         let subscriptionData = {
           status: finalUser.status,
           plan: 'Pro Plan',
-          amount: 499,
+          amount: 599,
           interval: 'month',
           trial_end: null as string | null,
           current_period_end: null as string | null,

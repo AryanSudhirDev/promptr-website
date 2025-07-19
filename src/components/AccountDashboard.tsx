@@ -369,7 +369,7 @@ const AccountDashboard = () => {
                           <span className="text-white text-sm">
                             {subscriptionData?.status === 'trialing' 
                               ? formatDate(subscriptionData.current_period_end)
-                              : `$${(subscriptionData?.amount || 499) / 100}/month`
+                              : `$${(subscriptionData?.amount || 599) / 100}/month`
                             }
                           </span>
                         </div>
@@ -508,7 +508,7 @@ const AccountDashboard = () => {
                   ) : null}
                   {!subscriptionData?.cancel_at_period_end &&
                   !(subscriptionData?.status === 'inactive' && subscriptionData?.trial_end) && (
-                    <p>Next billing: ${(subscriptionData?.amount || 499) / 100}/month</p>
+                                            <p>Next billing: ${(subscriptionData?.amount || 599) / 100}/month</p>
                   )}
                   {subscriptionData?.cancel_at_period_end && (
                     <p>Access ends: {formatDate(subscriptionData.current_period_end)}</p>
