@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Parse request body
-    const { email } = await req.json();
+    const { email, plan } = await req.json();
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({ 
         success: false, 
@@ -91,15 +91,17 @@ Deno.serve(async (req: Request) => {
         // Generate new access token
         const accessToken = crypto.randomUUID();
         
-        // Create user record with trialing status
-        // Stripe customer ID will be added later by webhook or manual process
+        // Create user record with appropriate status based on plan
+        // For free plan, use 'active' status, for others use 'trialing'
+        const userStatus = plan === 'free' ? 'active' : 'trialing';
+        
         const { data: newUser, error: createError } = await supabase
           .from('user_access')
           .insert({
             email: email.toLowerCase().trim(),
             access_token: accessToken,
             stripe_customer_id: null, // Will be populated by webhook when it works
-            status: 'trialing' // Default to trialing for new auto-created users
+            status: userStatus
           })
           .select('access_token, status')
           .single();

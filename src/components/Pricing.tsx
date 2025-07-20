@@ -61,7 +61,52 @@ const Pricing = () => {
     }
   }, [isSignedIn, isLoaded, user]);
 
-  const handleCheckout = async (plan: 'free' | 'pro' = 'pro') => {
+  const handleFreePlan = async () => {
+    if (!isSignedIn) {
+      window.location.href = '/sign-up';
+      return;
+    }
+
+    if (!user?.emailAddresses?.[0]?.emailAddress) {
+      handleApiError(new Error('Please ensure you are signed in with a valid email address'), 'Pricing - Free Plan');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Directly create user access for free plan
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-user-token`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            email: user.emailAddresses[0].emailAddress,
+            plan: 'free'
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to create free plan access');
+      }
+
+      // Redirect to account dashboard
+      window.location.href = '/account';
+    } catch (error) {
+      handleApiError(error, 'Pricing - Free Plan Access');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCheckout = async (plan: 'pro' = 'pro') => {
     if (!isSignedIn) {
       window.location.href = '/sign-up';
       return;
@@ -158,7 +203,7 @@ const Pricing = () => {
       <CardFooter className="pt-4 mt-auto">
         {isSignedIn ? (
           <Button 
-            onClick={() => handleCheckout('free')}
+            onClick={handleFreePlan}
             disabled={isLoading}
             variant="outline"
             className="w-full bg-gray-800/50 border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500/50 hover:text-white font-semibold py-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group text-base"
@@ -166,7 +211,7 @@ const Pricing = () => {
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin mr-2"></div>
-                Creating checkout...
+                Creating free access...
               </>
             ) : (
               <>
