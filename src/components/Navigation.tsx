@@ -80,6 +80,8 @@ const Navigation = () => {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-self-deletion`, {
         method: 'POST',
         headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),

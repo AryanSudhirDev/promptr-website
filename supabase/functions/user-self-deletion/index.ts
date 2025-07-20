@@ -14,6 +14,20 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Check for authorization header
+    const authHeader = req.headers.get('authorization');
+    const apiKey = req.headers.get('apikey');
+    
+    if (!authHeader || !apiKey) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        message: 'Missing authorization header' 
+      }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Parse request body
     const { email } = await req.json();
     if (!email || typeof email !== 'string') {
