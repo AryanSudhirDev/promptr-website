@@ -96,7 +96,7 @@ function App() {
           <Features />
         </div>
         <div id="testimonials">
-          <Testimonials />
+        <Testimonials />
         </div>
         <div id="pricing">
           <Pricing />

@@ -14,6 +14,16 @@ interface SubscriptionData {
   trial_end: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
+  plan_type?: 'free' | 'pro';
+  stripe_product_id?: string;
+  stripe_price_id?: string;
+}
+
+interface UsageData {
+  current_usage: number;
+  limit: number;
+  plan: 'free' | 'pro';
+  message: string;
 }
 
 const AccountDashboard = () => {
@@ -25,6 +35,8 @@ const AccountDashboard = () => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [usageLoading, setUsageLoading] = useState(true);
   const { user } = useUser();
 
   useEffect(() => {
@@ -67,6 +79,29 @@ const AccountDashboard = () => {
         const tokenData = await tokenResponse.json();
         const subData = await subscriptionResponse.json();
         
+        // Get usage data after we have the token
+        let usageData = null;
+        if (tokenData.success) {
+          try {
+            const usageResponse = await enhancedFetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-usage-limit`,
+              {
+                method: 'POST',
+                headers: { 
+                  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: tokenData.token }),
+              },
+              'Account - Get Usage Data'
+            );
+            usageData = await usageResponse.json();
+          } catch (error) {
+            console.log('Usage data not available:', error);
+          }
+        }
+        
         // If user doesn't exist in database but is authenticated via Clerk,
         // they might have completed payment but webhook failed
         
@@ -77,11 +112,16 @@ const AccountDashboard = () => {
         if (subData.success) {
           setSubscriptionData(subData.subscription);
         }
+
+        if (usageData && usageData.allowed !== undefined) {
+          setUsageData(usageData);
+        }
       } catch (error) {
         handleApiError(error, 'Account Dashboard - Fetch User Data');
       } finally {
         setLoading(false);
         setSubscriptionLoading(false);
+        setUsageLoading(false);
       }
     };
 
@@ -179,6 +219,43 @@ const AccountDashboard = () => {
     }
   };
 
+  const handleUpgradeToPro = async () => {
+    if (!user?.emailAddresses?.[0]?.emailAddress) return;
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            email: user.emailAddresses[0].emailAddress,
+            plan: 'pro'
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to create checkout session');
+      }
+
+      // Success - redirect to Stripe checkout
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error) {
+      handleApiError(error, 'Account - Upgrade to Pro');
+    }
+  };
+
   const handleCancelSubscription = async () => {
     if (!user?.emailAddresses?.[0]?.emailAddress) return;
     
@@ -242,21 +319,24 @@ const AccountDashboard = () => {
       const trialEnd = new Date(subscriptionData.trial_end);
       const now = new Date();
       if (trialEnd > now) {
-        return { text: 'Trial Cancelled (Active until trial ends)', color: 'yellow' };
+        return { text: 'Pro Plan - Trial Cancelled (Active until trial ends)', color: 'yellow' };
       }
     }
     
     if (subscriptionData.cancel_at_period_end) {
-      return { text: 'Cancelled (Active until end of period)', color: 'yellow' };
+      return { text: 'Pro Plan - Cancelled (Active until end of period)', color: 'yellow' };
     }
+    
+    // Check plan type
+    const planType = subscriptionData.plan_type || 'pro';
     
     switch (subscriptionData.status) {
       case 'trialing':
-        return { text: 'Pro Plan - Active Trial', color: 'green' };
+        return { text: `${planType === 'free' ? 'Free Plan' : 'Pro Plan'} - Active Trial`, color: 'green' };
       case 'active':
-        return { text: 'Pro Plan - Active', color: 'green' };
+        return { text: `${planType === 'free' ? 'Free Plan' : 'Pro Plan'} - Active`, color: 'green' };
       case 'inactive':
-        return { text: 'Pro Plan - Inactive', color: 'red' };
+        return { text: `${planType === 'free' ? 'Free Plan' : 'Pro Plan'} - Inactive`, color: 'red' };
       default:
         return { text: 'Unknown Status', color: 'gray' };
     }
@@ -285,7 +365,7 @@ const AccountDashboard = () => {
               ← Back to Home
             </Button>
             <h1 className="text-4xl font-bold text-white mb-2">Account Dashboard</h1>
-            <p className="text-gray-300">Manage your Promptr Pro subscription and access token</p>
+            <p className="text-gray-300">Manage your Promptr subscription and access token</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -347,6 +427,16 @@ const AccountDashboard = () => {
                     </div>
                     
                     <div className="space-y-2">
+                      {/* Show usage for free plan */}
+                      {subscriptionData?.plan_type === 'free' && usageData && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400 text-sm">Requests used</span>
+                          <span className="text-white text-sm">
+                            {usageData.current_usage}/{usageData.limit} per month
+                          </span>
+                        </div>
+                      )}
+                      
                       {/* Show trial cancelled status */}
                       {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end && 
                        new Date(subscriptionData.trial_end) > new Date() ? (
@@ -369,7 +459,9 @@ const AccountDashboard = () => {
                           <span className="text-white text-sm">
                             {subscriptionData?.status === 'trialing' 
                               ? formatDate(subscriptionData.current_period_end)
-                              : `$${(subscriptionData?.amount || 599) / 100}/month`
+                              : subscriptionData?.plan_type === 'free' 
+                                ? 'Free plan'
+                                : `$${(subscriptionData?.amount || 599) / 100}/month`
                             }
                           </span>
                         </div>
@@ -392,6 +484,21 @@ const AccountDashboard = () => {
                         >
                           Renew Subscription
                         </Button>
+                      ) : subscriptionData?.plan_type === 'free' ? (
+                        <>
+                          <Button
+                            onClick={handleUpgradeToPro}
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transform hover:scale-[1.02]"
+                          >
+                            Upgrade to Pro
+                          </Button>
+                          <Button
+                            onClick={() => setShowSubscriptionModal(true)}
+                            className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-gray-500/25 hover:shadow-xl hover:shadow-gray-500/30 transform hover:scale-[1.02]"
+                          >
+                            Manage Free Plan
+                          </Button>
+                        </>
                       ) : (
                         <>
                           <Button

@@ -32,9 +32,16 @@ const secureHandler = withSecurity(async (req: Request) => {
   const responseHeaders = getResponseHeaders(req);
 
   try {
-    const { email } = await req.json();
+    const { email, plan = 'pro' } = await req.json();
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({ error: 'Missing email' }), { 
+        status: 400, 
+        headers: responseHeaders
+      });
+    }
+
+    if (!['free', 'pro'].includes(plan)) {
+      return new Response(JSON.stringify({ error: 'Invalid plan' }), { 
         status: 400, 
         headers: responseHeaders
       });
@@ -93,15 +100,18 @@ const secureHandler = withSecurity(async (req: Request) => {
     }
 
     const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-    const stripePriceId = Deno.env.get('STRIPE_PRICE_ID');
     const siteUrl = Deno.env.get('SITE_URL');
 
     if (!stripeSecretKey) {
       throw new Error('STRIPE_SECRET_KEY environment variable is missing');
     }
 
-    if (!stripePriceId) {
-      throw new Error('STRIPE_PRICE_ID environment variable is missing');
+    // Set price ID based on plan
+    let stripePriceId;
+    if (plan === 'free') {
+      stripePriceId = 'price_1RmoLCE9moYSKNWTLTInZngt'; // Free plan
+    } else {
+      stripePriceId = 'price_1RmoHdE9moYSKNWT453mpQSH'; // Pro plan
     }
 
     const stripe = new Stripe(stripeSecretKey, {
@@ -116,10 +126,10 @@ const secureHandler = withSecurity(async (req: Request) => {
       payment_method_types: ['card'],
       customer_email: email,
       line_items: [{ price: stripePriceId, quantity: 1 }],
-      subscription_data: {
+      subscription_data: plan === 'pro' ? {
         trial_period_days: 14,
-      },
-      success_url: `${baseUrl}/account`, // changed from /?payment=success to /account
+      } : undefined,
+      success_url: `${baseUrl}/account`,
       cancel_url: `${baseUrl}/cancelled`,
     });
 

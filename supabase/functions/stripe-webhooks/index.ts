@@ -161,12 +161,35 @@ const webhookHandler = async (req: Request) => {
           break;
         }
 
+        // Get subscription details to determine plan
+        const subscription = session.subscription as Stripe.Subscription;
+        let planType = 'pro';
+        let productId = '';
+        let priceId = '';
+        
+        if (subscription) {
+          const lineItem = subscription.items.data[0];
+          if (lineItem) {
+            priceId = lineItem.price.id;
+            productId = lineItem.price.product as string;
+            
+            // Determine plan based on price ID
+            if (priceId === 'price_1RmoLCE9moYSKNWTLTInZngt') {
+              planType = 'free';
+            } else if (priceId === 'price_1RmoHdE9moYSKNWT453mpQSH') {
+              planType = 'pro';
+            }
+          }
+        }
+
         if (existingUser) {
-          // Update existing user with Stripe customer ID and set to trialing
-          // Also ensure they have an access token
+          // Update existing user with Stripe customer ID and plan info
           const updateData: any = {
             stripe_customer_id: customerId,
-            status: 'trialing'
+            status: 'trialing',
+            plan_type: planType,
+            stripe_product_id: productId,
+            stripe_price_id: priceId
           };
 
           // If user doesn't have an access token, generate one
@@ -183,10 +206,10 @@ const webhookHandler = async (req: Request) => {
           if (updateError) {
             console.error('Error updating existing user:', updateError);
           } else {
-            console.log('Updated existing user to trialing status:', email);
+            console.log(`Updated existing user to ${planType} plan:`, email);
           }
         } else {
-          // Create new user with access token
+          // Create new user with access token and plan info
           const accessToken = crypto.randomUUID();
           
           const { error: insertError } = await supabase
@@ -195,7 +218,10 @@ const webhookHandler = async (req: Request) => {
               email: email,
               access_token: accessToken,
               stripe_customer_id: customerId,
-              status: 'trialing'
+              status: 'trialing',
+              plan_type: planType,
+              stripe_product_id: productId,
+              stripe_price_id: priceId
             });
 
           if (insertError) {
