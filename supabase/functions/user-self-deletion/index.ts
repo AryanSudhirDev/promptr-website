@@ -41,6 +41,11 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log(`Starting deletion for email: ${email}`);
+    console.log('Environment check:', {
+      hasSupabaseUrl: !!Deno.env.get('SUPABASE_URL'),
+      hasServiceRoleKey: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+      hasStripeKey: !!Deno.env.get('STRIPE_SECRET_KEY')
+    });
 
     // Initialize Supabase with service role key (full admin access)
     const supabase = createClient(
@@ -159,9 +164,11 @@ Deno.serve(async (req: Request) => {
 
   } catch (error) {
     console.error('Deletion error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message || 'Failed to delete user account' 
+      error: errorMessage,
+      message: `Failed to delete user account: ${errorMessage}`
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

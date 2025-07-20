@@ -99,11 +99,13 @@ const Navigation = () => {
         // Redirect to home page immediately
         window.location.href = 'https://usepromptr.com';
       } else {
-        setDeleteMessage(`❌ Error: ${result.message || 'Failed to delete account'}`);
+        console.error('Delete account response error:', result);
+        setDeleteMessage(`❌ Error: ${result.message || result.error || 'Failed to delete account'}`);
       }
     } catch (error) {
       console.error('Delete account error:', error);
-      setDeleteMessage(`❌ Error: Failed to delete account. Please try again.`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete account. Please try again.';
+      setDeleteMessage(`❌ Error: ${errorMessage}`);
     } finally {
       setIsDeleting(false);
     }
