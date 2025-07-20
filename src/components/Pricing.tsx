@@ -117,62 +117,62 @@ const Pricing = () => {
   };
 
   const FreePlanCard = () => (
-    <Card className="relative h-full bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl shadow-2xl shadow-black/20 hover:shadow-3xl hover:shadow-black/30 transition-all duration-500 group flex flex-col min-h-[700px]">
-      <CardHeader className="text-center pb-8">
-        <div className="flex items-center justify-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-r from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-2xl flex items-center justify-center">
-            <Sparkles className="w-10 h-10 text-gray-400" />
+    <Card className="relative h-full bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl shadow-2xl shadow-black/20 hover:shadow-3xl hover:shadow-black/30 transition-all duration-500 group flex flex-col min-h-[480px]">
+      <CardHeader className="text-center pb-4">
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-12 h-12 bg-gradient-to-r from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-xl flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-gray-400" />
           </div>
         </div>
-        <CardTitle className="text-4xl font-bold text-white mb-3">Free</CardTitle>
+        <CardTitle className="text-2xl font-bold text-white mb-2">Free</CardTitle>
         
         {/* Pricing */}
-        <div className="mt-8">
+        <div className="mt-4">
           <div className="flex items-center justify-center gap-2">
-            <span className="text-5xl font-bold text-white">$0</span>
-            <span className="text-gray-300 text-xl font-medium">/month</span>
+            <span className="text-3xl font-bold text-white">$0</span>
+            <span className="text-gray-300 text-base font-medium">/month</span>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6 flex-grow">
+      <CardContent className="space-y-4 flex-grow">
 
         
-        <div className="flex items-center gap-4">
-          <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-full flex items-center justify-center">
-            <Check className="w-4 h-4 text-gray-400" />
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 w-5 h-5 bg-gradient-to-r from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-full flex items-center justify-center">
+            <Check className="w-3 h-3 text-gray-400" />
           </div>
-          <span className="text-gray-300 text-base">100 requests/month</span>
+          <span className="text-gray-300 text-sm">100 requests/month</span>
         </div>
         
         {features.slice(1, 5).map((feature, index) => (
-          <div key={index} className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-full flex items-center justify-center">
-              <Check className="w-4 h-4 text-gray-400" />
+          <div key={index} className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-5 h-5 bg-gradient-to-r from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-full flex items-center justify-center">
+              <Check className="w-3 h-3 text-gray-400" />
             </div>
-            <span className="text-gray-300 text-base">{feature}</span>
+            <span className="text-gray-300 text-sm">{feature}</span>
           </div>
         ))}
       </CardContent>
 
-      <CardFooter className="pt-8 mt-auto">
+      <CardFooter className="pt-4 mt-auto">
         {isSignedIn ? (
           <Button 
             onClick={() => handleCheckout('free')}
             disabled={isLoading}
             variant="outline"
-            className="w-full bg-gray-800/50 border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500/50 hover:text-white font-semibold py-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group text-lg"
+            className="w-full bg-gray-800/50 border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500/50 hover:text-white font-semibold py-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group text-base"
           >
             {isLoading ? (
               <>
-                <div className="w-5 h-5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin mr-2"></div>
+                <div className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin mr-2"></div>
                 Creating checkout...
               </>
             ) : (
               <>
-                <Zap className="w-6 h-6 mr-2" />
+                <Zap className="w-5 h-5 mr-2" />
                 Start Free Plan
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </Button>
@@ -180,11 +180,11 @@ const Pricing = () => {
           <Button 
             onClick={() => window.location.href = '/sign-up'}
             variant="outline"
-            className="w-full bg-gray-800/50 border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500/50 hover:text-white font-semibold py-6 rounded-xl transition-all duration-200 group text-lg"
+            className="w-full bg-gray-800/50 border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500/50 hover:text-white font-semibold py-4 rounded-xl transition-all duration-200 group text-base"
           >
-            <Zap className="w-6 h-6 mr-2" />
+            <Zap className="w-5 h-5 mr-2" />
             Start Free Plan
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         )}
       </CardFooter>
@@ -192,58 +192,58 @@ const Pricing = () => {
   );
 
   const ProPlanCard = () => (
-    <Card className="relative h-full bg-gradient-to-br from-blue-900/90 via-purple-900/90 to-pink-900/90 backdrop-blur-xl border border-blue-700/50 rounded-3xl shadow-2xl shadow-blue-500/20 hover:shadow-3xl hover:shadow-blue-500/30 transition-all duration-500 group flex flex-col min-h-[700px]">
+    <Card className="relative h-full bg-gradient-to-br from-blue-900/90 via-purple-900/90 to-pink-900/90 backdrop-blur-xl border border-blue-700/50 rounded-3xl shadow-2xl shadow-blue-500/20 hover:shadow-3xl hover:shadow-blue-500/30 transition-all duration-500 group flex flex-col min-h-[480px]">
 
       
-      <CardHeader className="text-center pb-8">
-        <div className="flex items-center justify-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-2xl flex items-center justify-center">
-            <Crown className="w-10 h-10 text-blue-400" />
+      <CardHeader className="text-center pb-4">
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl flex items-center justify-center">
+            <Crown className="w-6 h-6 text-blue-400" />
           </div>
         </div>
-        <CardTitle className="text-4xl font-bold text-white mb-3">Pro</CardTitle>
+        <CardTitle className="text-2xl font-bold text-white mb-2">Pro</CardTitle>
         
         {/* Pricing */}
-        <div className="mt-8">
+        <div className="mt-4">
           <div className="flex items-center justify-center gap-2">
-            <span className="text-5xl font-bold text-white">$5.99</span>
-            <span className="text-gray-300 text-xl font-medium">/month</span>
+            <span className="text-3xl font-bold text-white">$5.99</span>
+            <span className="text-gray-300 text-base font-medium">/month</span>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6 flex-grow">
+      <CardContent className="space-y-4 flex-grow">
         {features.map((feature, index) => (
-          <div key={index} className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full flex items-center justify-center">
-              <Check className="w-4 h-4 text-blue-400" />
+          <div key={index} className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-5 h-5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full flex items-center justify-center">
+              <Check className="w-3 h-3 text-blue-400" />
             </div>
-            <span className="text-gray-300 text-base">{feature}</span>
+            <span className="text-gray-300 text-sm">{feature}</span>
           </div>
         ))}
       </CardContent>
 
-      <CardFooter className="pt-8 mt-auto">
+      <CardFooter className="pt-4 mt-auto">
         {isSignedIn ? (
           <>
             {statusLoading ? (
-              <div className="w-full bg-gray-700/50 text-gray-300 font-semibold py-6 px-6 rounded-xl opacity-50 cursor-not-allowed border border-gray-600/50 text-lg">
+              <div className="w-full bg-gray-700/50 text-gray-300 font-semibold py-4 px-6 rounded-xl opacity-50 cursor-not-allowed border border-gray-600/50 text-base">
                 <div className="flex items-center justify-center gap-3">
-                  <div className="w-5 h-5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></div>
                   Checking subscription...
                 </div>
               </div>
             ) : userSubscriptionStatus === 'active' || userSubscriptionStatus === 'trialing' ? (
-              <div className="space-y-4 w-full">
+              <div className="space-y-3 w-full">
                 <Button 
                   onClick={() => window.location.href = '/account'}
-                  className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-6 rounded-xl transition-colors duration-200 text-lg"
+                  className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-4 rounded-xl transition-colors duration-200 text-base"
                 >
                   {userSubscriptionStatus === 'trialing' ? 'Manage Your Trial' : 'Manage Subscription'}
                 </Button>
-                <div className="flex items-center justify-center gap-2 text-green-400 bg-green-500/10 border border-green-500/20 rounded-xl py-3 px-4">
-                  <Check className="w-5 h-5" />
-                  <span className="font-medium text-base">
+                <div className="flex items-center justify-center gap-2 text-green-400 bg-green-500/10 border border-green-500/20 rounded-xl py-2 px-3">
+                  <Check className="w-4 h-4" />
+                  <span className="font-medium text-sm">
                     You have {userSubscriptionStatus === 'trialing' ? 'an active free trial' : 'an active subscription'}
                   </span>
                 </div>
@@ -252,18 +252,18 @@ const Pricing = () => {
               <Button 
                 onClick={() => handleCheckout('pro')}
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group shadow-xl shadow-blue-500/30 text-lg"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group shadow-xl shadow-blue-500/30 text-base"
               >
                 {isLoading ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
                     Creating checkout...
                   </>
                 ) : (
                   <>
-                    <Zap className="w-6 h-6 mr-2" />
+                    <Zap className="w-5 h-5 mr-2" />
                     {userSubscriptionStatus === 'inactive' ? 'Renew Subscription' : 'Start 14 Day Free Trial'}
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </Button>
@@ -272,11 +272,11 @@ const Pricing = () => {
         ) : (
           <Button 
             onClick={() => window.location.href = '/sign-up'}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-6 rounded-xl transition-all duration-200 group shadow-xl shadow-blue-500/30 text-lg"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 rounded-xl transition-all duration-200 group shadow-xl shadow-blue-500/30 text-base"
           >
-            <Zap className="w-6 h-6 mr-2" />
+            <Zap className="w-5 h-5 mr-2" />
             Start 14 Day Free Trial
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         )}
       </CardFooter>
@@ -301,11 +301,11 @@ const Pricing = () => {
 
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          <div className="w-full">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="w-full max-w-sm mx-auto">
             <FreePlanCard />
           </div>
-          <div className="w-full">
+          <div className="w-full max-w-sm mx-auto">
             <ProPlanCard />
           </div>
         </div>
