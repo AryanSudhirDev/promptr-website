@@ -454,13 +454,13 @@ const AccountDashboard = () => {
                        !(subscriptionData?.status === 'inactive' && subscriptionData?.trial_end) && (
                         <div className="flex items-center justify-between">
                           <span className="text-gray-400 text-sm">
-                            {subscriptionData?.status === 'trialing' ? 'Next billing' : 'Next billing'}
+                            {subscriptionData?.plan_type === 'free' ? 'Plan' : 'Next billing'}
                           </span>
                           <span className="text-white text-sm">
-                            {subscriptionData?.status === 'trialing' 
-                              ? formatDate(subscriptionData.current_period_end)
-                              : subscriptionData?.plan_type === 'free' 
-                                ? 'Free plan'
+                            {subscriptionData?.plan_type === 'free' 
+                              ? 'Free plan (100 prompt refinements/month)'
+                              : subscriptionData?.status === 'trialing' 
+                                ? formatDate(subscriptionData.current_period_end)
                                 : `$${(subscriptionData?.amount || 599) / 100}/month`
                             }
                           </span>

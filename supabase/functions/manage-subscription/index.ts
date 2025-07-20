@@ -143,10 +143,14 @@ const secureHandler = withSecurity(async (req: Request) => {
 
     switch (action) {
       case 'get_subscription_status': {
+        // Determine plan type based on user status and Stripe customer ID
+        const planType = finalUser.stripe_customer_id ? 'pro' : 'free';
+        
         let subscriptionData = {
           status: finalUser.status,
-          plan: 'Pro Plan',
-          amount: 599,
+          plan: planType === 'free' ? 'Free Plan' : 'Pro Plan',
+          plan_type: planType,
+          amount: planType === 'free' ? 0 : 599,
           interval: 'month',
           trial_end: null as string | null,
           current_period_end: null as string | null,
