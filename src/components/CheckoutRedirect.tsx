@@ -27,7 +27,10 @@ const CheckoutRedirect = () => {
               'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email: user.emailAddresses[0].emailAddress }),
+            body: JSON.stringify({ 
+              email: user.emailAddresses[0].emailAddress,
+              plan: 'pro' // Default to pro plan for checkout redirect
+            }),
           }
         );
 
@@ -74,8 +77,8 @@ const CheckoutRedirect = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center px-4" style={{ backgroundColor: '#0B0B0E' }}>
         <div className="max-w-md w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-center">
           <div className="animate-spin w-12 h-12 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-6"></div>
-          <h2 className="text-2xl font-bold text-white mb-4">Setting up your trial...</h2>
-          <p className="text-gray-300">We're redirecting you to complete your free trial setup.</p>
+          <h2 className="text-2xl font-bold text-white mb-4">Setting up your subscription...</h2>
+          <p className="text-gray-300">We're redirecting you to complete your subscription setup.</p>
         </div>
       </div>
     );

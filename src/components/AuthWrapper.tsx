@@ -20,7 +20,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
           <p className="text-gray-300">
             {mode === 'sign-in' 
               ? 'Sign in to access your Promptr account' 
-              : 'Create your account to start your free trial'
+              : 'Create your account to get started with Promptr'
             }
           </p>
         </div>
@@ -32,7 +32,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
             />
           ) : (
             <SignUp 
-              redirectUrl="/checkout"
+              redirectUrl="/"
             />
           )}
         </div>

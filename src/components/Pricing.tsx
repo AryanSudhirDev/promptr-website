@@ -187,7 +187,7 @@ const Pricing = () => {
           <div className="flex-shrink-0 w-5 h-5 bg-gradient-to-r from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-full flex items-center justify-center">
             <Check className="w-3 h-3 text-gray-400" />
           </div>
-          <span className="text-gray-300 text-sm">100 requests/month</span>
+          <span className="text-gray-300 text-sm">100 prompt refinements/month</span>
         </div>
         
         {features.slice(1, 5).map((feature, index) => (

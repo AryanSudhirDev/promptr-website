@@ -2,6 +2,13 @@ import React from 'react';
 import { Download, Sparkles } from 'lucide-react';
 
 const CTA = () => {
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="py-20 px-4">
       <div className="max-w-4xl mx-auto text-center">
@@ -41,16 +48,16 @@ const CTA = () => {
             </div>
 
             <div className="text-left group">
-              <h3 className="text-xl font-semibold text-white mb-4">Start Free Trial</h3>
+              <h3 className="text-xl font-semibold text-white mb-4">Get Started</h3>
               <p className="text-gray-300 mb-4">
-                Unlock advanced features and unlimited usage. 
-                No credit card required, cancel anytime.
+                Choose your plan and start using Promptr today. 
+                Free plan available with 100 prompt refinements per month.
               </p>
               <button
-                onClick={() => window.location.href = '/sign-up'}
+                onClick={scrollToPricing}
                 className="inline-flex items-center justify-center px-6 py-3 border border-gray-600 hover:border-purple-500/50 bg-gray-800/50 hover:bg-gray-700/80 text-white font-semibold rounded-xl transition-all duration-300 backdrop-blur-sm transform hover:scale-[1.02] group-hover:scale-105"
               >
-                Start Free Trial
+                Get Started
               </button>
             </div>
           </div>

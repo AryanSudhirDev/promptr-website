@@ -2,6 +2,13 @@ import React from 'react';
 import { Download } from 'lucide-react';
 
 const Hero = () => {
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative flex items-center px-4 lg:px-8 xl:px-16 py-32 overflow-hidden">
       {/* Hero content - Two column layout like Second Nature */}
@@ -33,10 +40,10 @@ const Hero = () => {
                 Install Extension
               </a>
               <button
-                onClick={() => window.location.href = '/sign-up'}
+                onClick={scrollToPricing}
                 className="inline-flex items-center justify-center px-8 py-4 border border-gray-600 hover:border-purple-500/50 bg-gray-800/50 hover:bg-gray-700/80 text-white font-semibold rounded-2xl transition-colors duration-200 backdrop-blur-sm"
               >
-                Start Free Trial
+                Get Started
               </button>
             </div>
           </div>

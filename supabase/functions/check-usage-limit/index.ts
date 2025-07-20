@@ -97,7 +97,7 @@ serve(async (req) => {
           plan: 'free', 
           current_usage: usage.request_count,
           limit: 100,
-          message: 'Free plan limit reached (100 requests/month). Upgrade to Pro for unlimited requests.' 
+          message: 'Free plan limit reached (100 prompt refinements/month). Upgrade to Pro for unlimited requests.' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
