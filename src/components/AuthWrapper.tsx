@@ -32,7 +32,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
             />
           ) : (
             <SignUp 
-              redirectUrl="/"
+              redirectUrl="/account"
             />
           )}
         </div>
@@ -48,14 +48,16 @@ export const RequireAuth: React.FC<{ children: React.ReactNode; fallback?: React
 }) => {
   const { isLoaded, isSignedIn } = useUser();
 
+  // Show loading spinner while Clerk is loading
   if (!isLoaded) {
     return (
-      <div className="flex items-center justify-center min-h-64">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
+  // If not signed in, show fallback or default sign-in prompt
   if (!isSignedIn) {
     return fallback || (
       <div className="text-center py-12">

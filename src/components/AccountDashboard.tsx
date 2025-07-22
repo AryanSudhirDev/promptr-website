@@ -537,7 +537,7 @@ const AccountDashboard = () => {
                     
                     <div className="relative">
                       <div className="flex items-center gap-2 p-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl backdrop-blur-sm">
-                        <div className="flex-1 font-mono text-sm">
+                        <div className="flex-1 font-mono text-sm text-white">
                           {showToken ? userToken : '•'.repeat(userToken.length || 20)}
                         </div>
                         <div className="flex items-center gap-2">
