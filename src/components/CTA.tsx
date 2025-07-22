@@ -51,7 +51,7 @@ const CTA = () => {
               <h3 className="text-xl font-semibold text-white mb-4">Get Started</h3>
               <p className="text-gray-300 mb-4">
                 Choose your plan and start using Promptr today. 
-                Free plan available with 100 prompt refinements per month.
+                Free plan available with 50 prompt refinements per month.
               </p>
               <button
                 onClick={scrollToPricing}

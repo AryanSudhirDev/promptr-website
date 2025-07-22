@@ -90,14 +90,14 @@ serve(async (req) => {
     }
 
     // Check if limit reached
-    if (usage.request_count >= 100) {
+    if (usage.request_count >= 50) {
       return new Response(
         JSON.stringify({ 
           allowed: false, 
           plan: 'free', 
           current_usage: usage.request_count,
-          limit: 100,
-          message: 'Free plan limit reached (100 prompt refinements/month). Upgrade to Pro for unlimited requests.' 
+          limit: 50,
+          message: 'Free plan limit reached (50 prompt refinements/month). Upgrade to Pro for unlimited requests.' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
@@ -121,7 +121,7 @@ serve(async (req) => {
         allowed: true, 
         plan: 'free', 
         current_usage: usage.request_count + 1,
-        limit: 100,
+        limit: 50,
         message: 'Request allowed' 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
           const subscriptions = await stripe.subscriptions.list({
             customer: userData.stripe_customer_id,
             status: 'all',
-            limit: 100,
+            limit: 50,
           });
 
           for (const subscription of subscriptions.data) {
@@ -92,7 +92,7 @@ Deno.serve(async (req: Request) => {
           // Delete payment methods
           const paymentMethods = await stripe.paymentMethods.list({
             customer: userData.stripe_customer_id,
-            limit: 100,
+            limit: 50,
           });
 
           for (const paymentMethod of paymentMethods.data) {
@@ -135,7 +135,7 @@ Deno.serve(async (req: Request) => {
     try {
       const { data: authUsers } = await supabase.auth.admin.listUsers({
         page: 1,
-        perPage: 1000
+        perPage: 500
       });
 
       const authUser = authUsers.users?.find(u => u.email === email.toLowerCase().trim());

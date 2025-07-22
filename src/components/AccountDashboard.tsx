@@ -458,7 +458,7 @@ const AccountDashboard = () => {
                           </span>
                           <span className="text-white text-sm">
                             {subscriptionData?.plan_type === 'free' 
-                              ? 'Free plan (100 prompt refinements/month)'
+                              ? 'Free plan (50 prompt refinements/month)'
                               : subscriptionData?.status === 'trialing' 
                                 ? formatDate(subscriptionData.current_period_end)
                                 : `$${(subscriptionData?.amount || 599) / 100}/month`

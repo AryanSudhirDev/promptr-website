@@ -21,7 +21,7 @@ const checkUsageLimit = async (token: string) => {
   if (!data.allowed) {
     // Show upgrade message
     vscode.window.showErrorMessage(
-      `Free plan limit reached (100 prompt refinements/month). Upgrade to Pro for unlimited requests: https://usepromptr.com/pricing`
+      `Free plan limit reached (50 prompt refinements/month). Upgrade to Pro for unlimited requests: https://usepromptr.com/pricing`
     );
     return false;
   }
@@ -37,7 +37,7 @@ const checkUsageLimit = async (token: string) => {
 - **Settings:** Cache plan info locally (refresh every hour)
 
 ### **3. User Experience**
-- **Free users:** Show usage count in status bar (e.g., "Free: 45/100")
+- **Free users:** Show usage count in status bar (e.g., "Free: 45/50")
 - **Pro users:** Show "Pro: Unlimited" in status bar
 - **Limit reached:** Block requests and show upgrade prompt
 - **Upgrade link:** Direct users to https://usepromptr.com/pricing
@@ -57,7 +57,7 @@ const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 ```
 
 ### **5. Error Messages**
-- **Limit reached:** "Free plan limit reached (100 prompt refinements/month). Upgrade to Pro for unlimited requests."
+- **Limit reached:** "Free plan limit reached (50 prompt refinements/month). Upgrade to Pro for unlimited requests."
 - **Token invalid:** "Invalid access token. Please check your token in settings."
 - **Network error:** "Unable to check usage limit. Please try again."
 
