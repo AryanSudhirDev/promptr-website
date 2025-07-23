@@ -24,8 +24,7 @@ const Hero = () => {
               your coding workflow
             </h1>
             <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed font-light max-w-lg">
-              Transform vague ideas into precise, actionable prompts. Join thousands of developers 
-              who've enhanced their productivity with intelligent AI assistance.
+              Transform vague ideas into precise, actionable prompts.
             </p>
 
             {/* CTA Buttons */}

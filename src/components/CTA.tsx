@@ -24,7 +24,6 @@ const CTA = () => {
               Transform your coding workflow today
             </h2>
             <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join thousands of developers who've enhanced their productivity with AI-powered prompt assistance. 
               Get started in seconds, no setup required.
             </p>
           </div>
