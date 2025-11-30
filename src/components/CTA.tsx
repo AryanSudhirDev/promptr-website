@@ -32,11 +32,11 @@ const CTA = () => {
             <div className="text-left group">
               <h3 className="text-xl font-semibold text-white mb-4">Install Extension</h3>
               <p className="text-gray-300 mb-4">
-                Download from VS Code marketplace and start using immediately. 
+                Download from Open VSX marketplace and start using immediately. 
                 Free to install with no configuration required.
               </p>
               <a
-                href="https://marketplace.visualstudio.com/items?itemName=AryanSudhir.promptr"
+                href="https://open-vsx.org/extension/aryansudhir/promptr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 transform hover:scale-[1.02] group-hover:scale-105"

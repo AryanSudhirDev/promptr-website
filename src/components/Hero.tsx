@@ -30,7 +30,7 @@ const Hero = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 lg:mr-32">
               <a
-                href="https://marketplace.visualstudio.com/items?itemName=AryanSudhir.promptr"
+                href="https://open-vsx.org/extension/aryansudhir/promptr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-2xl transition-colors duration-200 shadow-lg shadow-blue-500/25"
