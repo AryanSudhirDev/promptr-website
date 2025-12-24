@@ -36,7 +36,7 @@ const Pricing = () => {
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({ 
-                action: 'get_status',
+                action: 'get_subscription_status',
                 email: user.emailAddresses[0]?.emailAddress 
               }),
             }

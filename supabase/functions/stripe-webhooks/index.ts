@@ -176,7 +176,7 @@ const webhookHandler = async (req: Request) => {
             // Determine plan based on price ID
             if (priceId === 'price_1RmoLCE9moYSKNWTLTInZngt') {
               planType = 'free';
-            } else if (priceId === 'price_1RmoHdE9moYSKNWT453mpQSH') {
+            } else if (priceId === 'price_1RjwjpE9moYSKNWTaTfGxXt5') {
               planType = 'pro';
             }
           }

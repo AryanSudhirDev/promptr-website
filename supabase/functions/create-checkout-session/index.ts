@@ -19,6 +19,7 @@ interface Database {
           access_token: string;
           stripe_customer_id: string | null;
           status: 'trialing' | 'active' | 'inactive';
+          plan_type: 'free' | 'pro';
           created_at: string;
           updated_at: string;
         };
@@ -80,13 +81,18 @@ const secureHandler = withSecurity(async (req: Request) => {
     // Check if user already has a subscription
     const { data: existingUser, error: userError } = await supabase
       .from('user_access')
-      .select('status, stripe_customer_id')
+      .select('status, stripe_customer_id, plan_type')
       .eq('email', email.toLowerCase().trim())
       .single();
 
-    // If user exists and has active or trialing subscription, prevent checkout
+    // If user exists and has active or trialing PRO subscription, prevent checkout
+    // But allow Free plan users to upgrade to Pro
     if (existingUser && !userError) {
-      if (existingUser.status === 'active' || existingUser.status === 'trialing') {
+      const userPlanType = existingUser.plan_type || 'free';
+      const isProUser = userPlanType === 'pro' && existingUser.stripe_customer_id;
+      
+      // Only block if user already has an active/trialing PRO subscription
+      if (isProUser && (existingUser.status === 'active' || existingUser.status === 'trialing')) {
         return new Response(JSON.stringify({ 
           error: 'You already have an active subscription',
           message: 'You already have an active Promptr Pro subscription. Visit your account dashboard to manage it.',
@@ -109,9 +115,9 @@ const secureHandler = withSecurity(async (req: Request) => {
     // Set price ID based on plan
     let stripePriceId;
     if (plan === 'free') {
-      stripePriceId = 'price_1RmoLCE9moYSKNWTLTInZngt'; // Free plan
+      stripePriceId = 'price_1RmoLCE9moYSKNWTLTInZngt'; // Free plan ($0/month)
     } else {
-      stripePriceId = 'price_1RmoHdE9moYSKNWT453mpQSH'; // Pro plan
+      stripePriceId = 'price_1RjwjpE9moYSKNWTaTfGxXt5'; // Pro plan ($5.99/month)
     }
 
     const stripe = new Stripe(stripeSecretKey, {
