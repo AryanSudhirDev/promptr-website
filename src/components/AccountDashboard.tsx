@@ -668,9 +668,10 @@ const AccountDashboard = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </section>
-    </RequireAuth>
-  );
+    </section>
+  </div>
+</RequireAuth>
+);
 };
 
 export default AccountDashboard; 
