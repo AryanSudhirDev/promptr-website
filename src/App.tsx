@@ -58,16 +58,16 @@ function App() {
   if (path === '/cancelled') {
     return (
       <>
-        <div className="min-h-screen bg-black flex items-center justify-center px-4">
-          <div className="max-w-md w-full bg-gray-900/40 backdrop-blur-xl border border-gray-800/50 rounded-3xl p-8 text-center">
-            <div className="w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+        <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4">
+          <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 text-center shadow-lg">
+            <div className="w-16 h-16 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center justify-center mx-auto mb-6">
               <span className="text-3xl">❌</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-4">Checkout Cancelled</h1>
-            <p className="text-gray-400 mb-8 font-light">No worries! You can try again anytime when you're ready.</p>
-            <button 
+            <h1 className="text-3xl font-bold text-foreground mb-4">Checkout Cancelled</h1>
+            <p className="text-muted-foreground mb-8 font-light">No worries! You can try again anytime when you're ready.</p>
+            <button
               onClick={() => window.location.href = '/'}
-              className="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-[1.02] hover:-translate-y-1"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-sm"
             >
               Return to Home
             </button>
@@ -78,33 +78,27 @@ function App() {
     );
   }
 
-  // Default home page
+  // Default home page - Attio-inspired light theme
   return (
     <>
-      {/* Unified background that covers the entire page */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"></div>
-      <div className="fixed inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.2),transparent_50%)]"></div>
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.2),transparent_50%)]"></div>
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
-      
-      {/* Content */}
-      <div className="relative z-10">
+      <div className="min-h-screen bg-background">
         <Navigation />
-        <Hero />
-        <div id="features">
-          <Features />
-        </div>
-        <div id="testimonials">
-        <Testimonials />
-        </div>
-        <div id="pricing">
-          <Pricing />
-        </div>
-        <div id="faq">
-          <FAQ />
-        </div>
-        <Footer />
+        <main className="relative">
+          <Hero />
+          <div id="features">
+            <Features />
+          </div>
+          <div id="testimonials">
+            <Testimonials />
+          </div>
+          <div id="pricing">
+            <Pricing />
+          </div>
+          <div id="faq">
+            <FAQ />
+          </div>
+          <Footer />
+        </main>
       </div>
       <NotificationSystem />
     </>

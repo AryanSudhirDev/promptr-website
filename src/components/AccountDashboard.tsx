@@ -346,46 +346,40 @@ const AccountDashboard = () => {
 
   return (
     <RequireAuth>
-      {/* Unified background that covers the entire page */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"></div>
-      <div className="fixed inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.2),transparent_50%)]"></div>
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.2),transparent_50%)]"></div>
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
-      
-      <section className="relative min-h-screen flex flex-col px-4 py-20">
-        <div className="relative z-10 w-full px-4 sm:px-8 lg:px-16 xl:px-24">
+      <div className="min-h-screen bg-background">
+        <section className="relative flex flex-col px-4 py-16">
+          <div className="w-full max-w-6xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-10">
             <Button
               variant="ghost"
               onClick={() => (window.location.href = '/')}
-              className="text-purple-400 hover:text-purple-300 mb-4 inline-flex items-center px-0 hover:bg-purple-500/10 rounded-xl transition-all duration-200"
+              className="text-primary hover:text-primary/80 mb-4 inline-flex items-center px-0 hover:bg-primary/10 rounded-xl transition-colors"
             >
               ← Back to Home
             </Button>
-            <h1 className="text-4xl font-bold text-white mb-2">Account Dashboard</h1>
-            <p className="text-gray-300">Manage your Promptr subscription and access token</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Account Dashboard</h1>
+            <p className="text-muted-foreground">Manage your Promptr subscription and access token</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Account Info */}
-            <div className="lg:col-span-6 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20 hover:border-purple-500/30 transition-all duration-300 hover:shadow-purple-500/10">
+            <div className="lg:col-span-6 group relative bg-card border border-border rounded-2xl p-6 lg:p-8 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <User className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-white">Account Info</h2>
+                <h2 className="text-xl font-bold text-foreground">Account Info</h2>
               </div>
               
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-gray-400">Email</p>
-                  <p className="text-white font-medium">{user?.emailAddresses?.[0]?.emailAddress}</p>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="text-foreground font-medium">{user?.emailAddresses?.[0]?.emailAddress}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Name</p>
-                  <p className="text-white font-medium">
+                  <p className="text-sm text-muted-foreground">Name</p>
+                  <p className="text-foreground font-medium">
                     {user?.firstName && user?.lastName 
                       ? `${user.firstName} ${user.lastName}` 
                       : user?.firstName || 'Not set'
@@ -393,8 +387,8 @@ const AccountDashboard = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Member since</p>
-                  <p className="text-white font-medium">
+                  <p className="text-sm text-muted-foreground">Member since</p>
+                  <p className="text-foreground font-medium">
                     {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
                   </p>
                 </div>
@@ -402,18 +396,18 @@ const AccountDashboard = () => {
             </div>
 
             {/* Subscription Status */}
-            <div className="lg:col-span-6 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/10">
+            <div className="lg:col-span-6 group relative bg-card border border-border rounded-2xl p-6 lg:p-8 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-lg flex items-center justify-center">
-                  <Check className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                  <Check className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-white">Subscription</h2>
+                <h2 className="text-xl font-bold text-foreground">Subscription</h2>
               </div>
               
               <div className="space-y-4">
                 {subscriptionLoading ? (
                   <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+                    <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
                   </div>
                 ) : (
                   <>
@@ -423,15 +417,15 @@ const AccountDashboard = () => {
                         statusDisplay.color === 'yellow' ? 'bg-yellow-500' :
                         statusDisplay.color === 'red' ? 'bg-red-500' : 'bg-gray-500'
                       }`}></div>
-                      <span className="text-white font-medium">{statusDisplay.text}</span>
+                      <span className="text-foreground font-medium">{statusDisplay.text}</span>
                     </div>
                     
                     <div className="space-y-2">
                       {/* Show usage for free plan */}
                       {subscriptionData?.plan_type === 'free' && usageData && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400 text-sm">Requests used</span>
-                          <span className="text-white text-sm">
+                          <span className="text-muted-foreground text-sm">Requests used</span>
+                          <span className="text-foreground text-sm">
                             {usageData.current_usage}/{usageData.limit} per month
                           </span>
                         </div>
@@ -441,22 +435,22 @@ const AccountDashboard = () => {
                       {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end && 
                        new Date(subscriptionData.trial_end) > new Date() ? (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400 text-sm">Trial ends (cancelled)</span>
-                          <span className="text-white text-sm">{getTrialDaysRemaining()} days remaining</span>
+                          <span className="text-muted-foreground text-sm">Trial ends (cancelled)</span>
+                          <span className="text-foreground text-sm">{getTrialDaysRemaining()} days remaining</span>
                         </div>
                       ) : subscriptionData?.status === 'trialing' && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400 text-sm">Trial ends</span>
-                          <span className="text-white text-sm">{getTrialDaysRemaining()} days remaining</span>
+                          <span className="text-muted-foreground text-sm">Trial ends</span>
+                          <span className="text-foreground text-sm">{getTrialDaysRemaining()} days remaining</span>
                         </div>
                       )}
                       {!subscriptionData?.cancel_at_period_end && 
                        !(subscriptionData?.status === 'inactive' && subscriptionData?.trial_end) && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400 text-sm">
+                          <span className="text-muted-foreground text-sm">
                             {subscriptionData?.plan_type === 'free' ? 'Plan' : 'Next billing'}
                           </span>
-                          <span className="text-white text-sm">
+                          <span className="text-foreground text-sm">
                             {subscriptionData?.plan_type === 'free' 
                               ? 'Free plan (50 prompt refinements/month)'
                               : subscriptionData?.status === 'trialing' 
@@ -468,8 +462,8 @@ const AccountDashboard = () => {
                       )}
                       {subscriptionData?.cancel_at_period_end && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400 text-sm">Access ends</span>
-                          <span className="text-white text-sm">{formatDate(subscriptionData.current_period_end)}</span>
+                          <span className="text-muted-foreground text-sm">Access ends</span>
+                          <span className="text-foreground text-sm">{formatDate(subscriptionData.current_period_end)}</span>
                         </div>
                       )}
                     </div>
@@ -478,23 +472,21 @@ const AccountDashboard = () => {
                     <div className="pt-4 space-y-3">
                       {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
                       new Date(subscriptionData.trial_end) > new Date() ? (
-                        <Button
-                          onClick={handleRenewSubscription}
-                          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transform hover:scale-[1.02]"
-                        >
+                        <Button onClick={handleRenewSubscription} className="w-full">
                           Renew Subscription
                         </Button>
                       ) : subscriptionData?.plan_type === 'free' ? (
                         <>
                           <Button
                             onClick={handleUpgradeToPro}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transform hover:scale-[1.02]"
+                            className="w-full"
                           >
                             Upgrade to Pro
                           </Button>
                           <Button
                             onClick={() => setShowSubscriptionModal(true)}
-                            className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-gray-500/25 hover:shadow-xl hover:shadow-gray-500/30 transform hover:scale-[1.02]"
+                            variant="outline"
+                            className="w-full"
                           >
                             Manage Free Plan
                           </Button>
@@ -503,7 +495,7 @@ const AccountDashboard = () => {
                         <>
                           <Button
                             onClick={() => setShowSubscriptionModal(true)}
-                            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transform hover:scale-[1.02]"
+                            className="w-full"
                           >
                             Manage Subscription
                           </Button>
@@ -516,28 +508,28 @@ const AccountDashboard = () => {
             </div>
 
             {/* Access Token */}
-            <div className="lg:col-span-12 group relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-10 lg:p-12 shadow-2xl shadow-black/20 hover:border-blue-500/30 transition-all duration-300 hover:shadow-blue-500/10">
+            <div className="lg:col-span-12 group relative bg-card border border-border rounded-2xl p-6 lg:p-8 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                  <Key className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <Key className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-white">Access Token</h2>
+                <h2 className="text-xl font-bold text-foreground">Access Token</h2>
               </div>
               
               <div className="space-y-4">
                 {loading ? (
                   <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+                    <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
                   </div>
                 ) : (
                   <>
-                    <p className="text-gray-300 text-sm">
-                      Use this token to authenticate with the Promptr VS Code extension. Keep it secure and don't share it with others.
+                    <p className="text-sm text-muted-foreground">
+                      Use this token to authenticate with the Promptr VS Code extension. Keep it secure and don&apos;t share it with others.
                     </p>
                     
                     <div className="relative">
-                      <div className="flex items-center gap-2 p-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl backdrop-blur-sm">
-                        <div className="flex-1 font-mono text-sm text-white">
+                      <div className="flex items-center gap-2 p-4 bg-muted/50 border border-border rounded-xl">
+                        <div className="flex-1 font-mono text-sm text-foreground">
                           {showToken ? userToken : '•'.repeat(userToken.length || 20)}
                         </div>
                         <div className="flex items-center gap-2">
@@ -545,7 +537,7 @@ const AccountDashboard = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowToken(!showToken)}
-                            className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted"
                           >
                             {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </Button>
@@ -553,7 +545,7 @@ const AccountDashboard = () => {
                             variant="ghost"
                             size="sm"
                             onClick={copyToken}
-                            className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted"
                           >
                             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                           </Button>
@@ -561,7 +553,7 @@ const AccountDashboard = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <ExternalLink className="w-4 h-4" />
                         <span>Install the VS Code extension</span>
@@ -580,9 +572,9 @@ const AccountDashboard = () => {
 
         {/* Subscription Management Modal */}
         <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
-          <DialogContent className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8 max-w-md w-full">
+          <DialogContent className="max-w-md w-full">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-white">
+              <DialogTitle className="text-xl font-bold text-foreground">
                 {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
                 new Date(subscriptionData.trial_end) > new Date()
                   ? 'Renew Subscription'
@@ -592,7 +584,7 @@ const AccountDashboard = () => {
 
             <div className="space-y-6">
               {/* Current Plan Info */}
-              <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-4">
+              <div className="bg-muted/50 border border-border rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-3 h-3 rounded-full ${
                     statusDisplay.color === 'green'
@@ -603,9 +595,9 @@ const AccountDashboard = () => {
                       ? 'bg-red-500'
                       : 'bg-gray-500'
                   }`}></div>
-                  <span className="text-white font-medium">{statusDisplay.text}</span>
+                  <span className="text-foreground font-medium">{statusDisplay.text}</span>
                 </div>
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   {/* Check if trial is cancelled */}
                   {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
                   new Date(subscriptionData.trial_end) > new Date() ? (
@@ -629,7 +621,7 @@ const AccountDashboard = () => {
                 new Date(subscriptionData.trial_end) > new Date() ? (
                   <Button
                     onClick={handleRenewSubscription}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 transition-colors duration-200"
+                    className="w-full"
                   >
                     Renew Subscription
                   </Button>
@@ -637,7 +629,7 @@ const AccountDashboard = () => {
                   <>
                     <Button
                       onClick={handleUpdatePaymentMethod}
-                      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-500 hover:to-purple-600 transition-colors duration-200"
+                      className="w-full"
                     >
                       Update Payment Method
                     </Button>
@@ -658,8 +650,8 @@ const AccountDashboard = () => {
               </div>
 
               {!subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'inactive' && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                  <p className="text-sm text-red-300">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-red-700">
                     You'll continue to have access until the end of your current billing period.
                   </p>
                 </div>
@@ -667,8 +659,8 @@ const AccountDashboard = () => {
 
               {subscriptionData?.status === 'inactive' && subscriptionData?.trial_end &&
               new Date(subscriptionData.trial_end) > new Date() && (
-                <div className="bg-emerald-400/10 border border-emerald-400/20 rounded-lg p-3">
-                  <p className="text-sm text-emerald-300">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                  <p className="text-sm text-emerald-700">
                     Your trial was cancelled but you still have access until {formatDate(subscriptionData.trial_end)}. Renew now to continue using Promptr Pro.
                   </p>
                 </div>

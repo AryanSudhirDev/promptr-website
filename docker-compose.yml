@@ -1,0 +1,61 @@
+# ===========================================
+# Promptr Website Docker Compose
+# ===========================================
+# Usage:
+#   Development: docker-compose up
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+version: '3.8'
+
+services:
+  # ===========================================
+  # Development Server
+  # ===========================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount source code for hot reloading
+      - .:/app
+      # Preserve node_modules from container
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    command: npm run dev -- --host
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===========================================
+  # Production Build (optional)
+  # ===========================================
+  # Uncomment to run production build locally
+  # web-prod:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     args:
+  #       - VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
+  #       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+  #       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=production
+
+# ===========================================
+# Networks (optional, for microservices)
+# ===========================================
+networks:
+  default:
+    name: promptr-network
+

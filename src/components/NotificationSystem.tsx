@@ -46,41 +46,40 @@ const Notification: React.FC<NotificationProps> = ({
 
 
 
-  const getDarkColorClasses = () => {
+  const getToastClasses = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-900/20 border-green-500/30 text-green-100';
+        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-500/30 text-green-800 dark:text-green-100';
       case 'error':
-        return 'bg-red-900/20 border-red-500/30 text-red-100';
+        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-500/30 text-red-800 dark:text-red-100';
       case 'warning':
-        return 'bg-yellow-900/20 border-yellow-500/30 text-yellow-100';
+        return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-500/30 text-yellow-800 dark:text-yellow-100';
       case 'info':
-        return 'bg-blue-900/20 border-blue-500/30 text-blue-100';
+        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-100';
       default:
-        return 'bg-gray-900/20 border-gray-500/30 text-gray-100';
+        return 'bg-card border-border text-foreground';
     }
   };
 
   return (
     <div
       className={`
-        max-w-md w-full border backdrop-blur-sm rounded-lg p-4 shadow-lg
+        max-w-md w-full border rounded-xl p-4 shadow-lg
         transform transition-all duration-300 ease-in-out
         ${isVisible && !isLeaving ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
-        ${getDarkColorClasses()}
+        ${getToastClasses()}
       `}
     >
       <div className="flex items-start">
-        <div className="flex-shrink-0 mr-3">
-          {getIcon()}
-        </div>
+        <div className="flex-shrink-0 mr-3">{getIcon()}</div>
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-semibold mb-1">{title}</h4>
           <p className="text-sm opacity-90">{message}</p>
         </div>
         <button
           onClick={handleClose}
-          className="flex-shrink-0 ml-3 text-gray-400 hover:text-gray-200 transition-colors"
+          className="flex-shrink-0 ml-3 text-muted-foreground hover:text-foreground transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+          aria-label="Close notification"
         >
           <X className="w-4 h-4" />
         </button>

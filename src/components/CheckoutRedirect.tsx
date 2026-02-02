@@ -74,11 +74,11 @@ const CheckoutRedirect = () => {
 
   if (!isLoaded || isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center px-4" style={{ backgroundColor: '#0B0B0E' }}>
-        <div className="max-w-md w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-center">
-          <div className="animate-spin w-12 h-12 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-6"></div>
-          <h2 className="text-2xl font-bold text-white mb-4">Setting up your subscription...</h2>
-          <p className="text-gray-300">We're redirecting you to complete your subscription setup.</p>
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 text-center shadow-lg">
+          <div className="animate-spin w-12 h-12 border-2 border-primary border-t-transparent rounded-full mx-auto mb-6" />
+          <h2 className="text-2xl font-bold text-foreground mb-4">Setting up your subscription...</h2>
+          <p className="text-muted-foreground">We're redirecting you to complete your subscription setup.</p>
         </div>
       </div>
     );
@@ -86,23 +86,23 @@ const CheckoutRedirect = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center px-4" style={{ backgroundColor: '#0B0B0E' }}>
-        <div className="max-w-md w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-center">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 text-center shadow-lg">
+          <div className="w-16 h-16 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center justify-center mx-auto mb-6">
             <span className="text-2xl">⚠️</span>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-4">Something went wrong</h2>
-          <p className="text-gray-300 mb-6">{error}</p>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Something went wrong</h2>
+          <p className="text-muted-foreground mb-6">{error}</p>
           <div className="space-y-4">
-            <button 
+            <button
               onClick={() => window.location.reload()}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 hover:from-purple-500 hover:to-purple-600"
+              className="w-full bg-primary text-primary-foreground font-semibold py-3 px-6 rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
             >
               Try Again
             </button>
-            <button 
-              onClick={() => window.location.href = '/'}
-              className="w-full border border-white/20 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 hover:bg-white/10"
+            <button
+              onClick={() => (window.location.href = '/')}
+              className="w-full border border-border text-foreground font-semibold py-3 px-6 rounded-xl hover:bg-muted transition-colors"
             >
               Go Home
             </button>
