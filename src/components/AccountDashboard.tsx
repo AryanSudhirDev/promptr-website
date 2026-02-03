@@ -343,6 +343,9 @@ const AccountDashboard = () => {
   };
 
   const statusDisplay = getStatusDisplay();
+  const usageLimitDisplay =
+    usageData?.limit ??
+    (subscriptionData?.plan_type === 'free' ? 50 : undefined);
 
   return (
     <RequireAuth>
@@ -426,7 +429,7 @@ const AccountDashboard = () => {
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground text-sm">Requests used</span>
                           <span className="text-foreground text-sm">
-                            {usageData.current_usage}/{usageData.limit} per month
+                            {usageData.current_usage}/{usageLimitDisplay ?? '—'} per month
                           </span>
                         </div>
                       )}
